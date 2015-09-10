@@ -1,0 +1,17 @@
+#!/bin/bash
+# ATTENTION: This file is managed by puppet (workarounds::disable_lro). Do not
+# modify locally.
+
+# pjd - persist changes to interface flags. See
+# https://access.redhat.com/solutions/8694
+#
+
+case "$1" in
+
+# for any interface using the ixgbe driver (i.e. em*) turn off Large
+# Receive Offload - see 
+# https://access.redhat.com/support/cases/#/case/01326984
+  e*) /sbin/ethtool -K $1 lro off
+
+esac
+

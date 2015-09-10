@@ -1,0 +1,17 @@
+#!/bin/sh
+
+FILE="/etc/sysconfig/network-scripts/ifcfg-enp130s0f0.<%= ceph_vlan %>"
+
+HOST=$(hostname | cut -d- -f2 | cut -d. -f1)
+HOST_IP="192.168.28.$HOST"
+
+touch $FILE
+echo "DEVICE=\"enp130s0f0.<%= ceph_vlan %>\"" >> $FILE
+echo "ONBOOT=yes" >> $FILE
+echo "BOOTPROTO=static" >> $FILE
+echo "VLAN=yes" >> $FILE
+echo "IPADDR=$HOST_IP" >> $FILE
+echo "NETMASK=255.255.255.0" >> $FILE
+echo "GATEWAY=192.168.28.1" >> $FILE
+echo "NOZEROCONF=yes" >> $FILE
+echo "DEFROUTE=no" >> $FILE
