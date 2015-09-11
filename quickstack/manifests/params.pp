@@ -26,11 +26,6 @@ class quickstack::params (
   $nova_db_password,
   $nova_user_password,
 
-  # Public interface parameters
-  $public_subnet,
-  $public_vlan,
-
-
   # Ceph parameters
   $ceph_nodes,
   $ceph_endpoints,
