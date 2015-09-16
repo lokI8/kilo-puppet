@@ -33,14 +33,21 @@ class quickstack::storage_backend::cinder(
   $verbose                     = $quickstack::params::verbose,
   $ssl                         = $quickstack::params::ssl,
   $mysql_ca                    = $quickstack::params::mysql_ca,
+  $mysql_ssl                   = $quickstack::params::mysql_ssl,
+  $amqp_ssl                    = $quickstack::params::amqp_ssl,
+  $horizon_ssl                 = $quickstack::params::horizon_ssl,
 ) inherits quickstack::params {
 
   class {'quickstack::openstack_common': }
 
   if str2bool_i("$ssl") {
-    $qpid_protocol = 'ssl'
-    $amqp_port = '5671'
-    $sql_connection = "mysql://cinder:${cinder_db_password}@${mysql_host}/cinder?ssl_ca=${mysql_ca}"
+    if str2bool_i("$amqp_ssl") {
+      $qpid_protocol = 'ssl'
+      $amqp_port = '5671'
+    }
+    if str2bool_i("$mysql_ssl") {
+      $sql_connection = "mysql://cinder:${cinder_db_password}@${mysql_host}/cinder?ssl_ca=${mysql_ca}"
+    }
   } else {
     $qpid_protocol = 'tcp'
     $amqp_port = '5672'

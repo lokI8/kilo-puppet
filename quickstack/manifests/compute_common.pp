@@ -62,9 +62,22 @@ class quickstack::compute_common (
   $rbd_secret_uuid              = '',
   $network_device_mtu           = $quickstack::params::network_device_mtu,
   $ssl                          = $quickstack::params::ssl,
+  $mysql_ssl                    = $quickstack::params::mysql_ssl,
+  $amqp_ssl                     = $quickstack::params::amqp_ssl,
+  $horizon_ssl                  = $quickstack::params::horizon_ssl,
   $verbose                      = $quickstack::params::verbose,
   $vnc_keymap                   = 'en-us',
   $vncproxy_host                = undef,
+  $glance_priv_url              = $quickstack::params::glance_priv_url,
+  $use_ssl                      = $quickstack::params::use_ssl_endpoints,
+  $auth_protocol                = $quickstack::params::auth_protocol,
+  $enabled_ssl_apis             = ['osapi_compute'],
+  $key_file                     = $quickstack::params::nova_key,
+  $cert_file                    = $quickstack::params::nova_cert,
+  $ca_file                      = $quickstack::params::root_ca_cert,
+  $auth_uri                     = $quickstack::params::keystone_pub_url,
+  $identity_uri                 = $quickstack::params::keystone_admin_url,
+  $neutron                      = $quickstack::params::neutron,
   $ceph_nodes                   = $quickstack::params::ceph_nodes,
   $ceph_enpoints                = $quickstack::params::ceph_endpoints,
   $ceph_user                    = $quickstack::params::ceph_user,
@@ -75,6 +88,25 @@ class quickstack::compute_common (
 ) inherits quickstack::params {
 
   class {'quickstack::openstack_common': }
+
+  if str2bool_i("$use_ssl") {
+    if str2bool_i("$amqp_ssl") {
+      $qpid_protocol = 'ssl'
+      $real_amqp_port = $amqp_ssl_port
+    }
+
+    if str2bool_i("$mysql_ssl") {
+      $nova_sql_connection = "mysql://nova:${nova_db_password}@${mysql_host}/nova?ssl_ca=${mysql_ca}"
+    }
+
+    class {'moc_openstack::ssl::install_rootca':
+      before => Package['nova-common'],
+    }
+  } else {
+    $qpid_protocol = 'tcp'
+    $real_amqp_port = $amqp_port
+    $nova_sql_connection = "mysql://nova:${nova_db_password}@${mysql_host}/nova"
+  }
 
   if str2bool_i($kvm_capable) {
     $libvirt_type = 'kvm'
@@ -192,17 +224,6 @@ class quickstack::compute_common (
     'DEFAULT/cinder_catalog_info': value => $cinder_catalog_info;
   }
 
-  if str2bool_i("$ssl") {
-    $qpid_protocol = 'ssl'
-    $real_amqp_port = $amqp_ssl_port
-    $nova_sql_connection = "mysql://nova:${nova_db_password}@${mysql_host}/nova?ssl_ca=${mysql_ca}"
-
-  } else {
-    $qpid_protocol = 'tcp'
-    $real_amqp_port = $amqp_port
-    $nova_sql_connection = "mysql://nova:${nova_db_password}@${mysql_host}/nova"
-  }
-
   if $rabbit_hosts {
     nova_config { 'DEFAULT/rabbit_host': ensure => absent }
     nova_config { 'DEFAULT/rabbit_port': ensure => absent }
@@ -211,7 +232,7 @@ class quickstack::compute_common (
   class { '::nova':
     database_connection => $nova_sql_connection,
     image_service       => 'nova.image.glance.GlanceImageService',
-    glance_api_servers  => "http://${glance_host}:9292/v1",
+    glance_api_servers  => "${glance_priv_url}/v1",
     rpc_backend         => amqp_backend('nova', $amqp_provider),
     qpid_hostname       => $amqp_host,
     qpid_protocol       => $qpid_protocol,
@@ -222,9 +243,14 @@ class quickstack::compute_common (
     rabbit_port         => $real_amqp_port,
     rabbit_userid       => $amqp_username,
     rabbit_password     => $amqp_password,
-    rabbit_use_ssl      => $ssl,
+    rabbit_use_ssl      => $amqp_ssl,
     rabbit_hosts        => $rabbit_hosts,
     verbose             => $verbose,
+    use_ssl             => $use_ssl,
+    enabled_ssl_apis    => ['osapi_compute'],
+    key_file            => $key_file,
+    cert_file           => $cert_file,
+    ca_file             => $ca_file,
   }
 
   $compute_ip = find_ip("$private_network",
@@ -236,6 +262,30 @@ class quickstack::compute_common (
     vncserver_proxyclient_address => $compute_ip,
     network_device_mtu            => $network_device_mtu,
     vnc_keymap                    => $vnc_keymap,
+    auth_protocol                 => $auth_protocol,
+    auth_uri                      => $auth_uri,
+    identity_uri                  => $identity_uri,
+  }
+
+  if str2bool_i("$neutron") {
+    class { '::nova::api':
+      enabled           => false,
+      admin_password    => $nova_user_password,
+      auth_host         => $controller_priv_host,
+      auth_protocol     => $auth_protocol,
+      auth_uri          => $keystone_pub_url,
+      identity_uri      => $keystone_admin_url,
+      neutron_metadata_proxy_shared_secret => $neutron_metadata_proxy_secret,
+    }
+  } else {
+    class { '::nova::api':
+      enabled           => false,
+      admin_password    => $nova_user_password,
+      auth_host         => $controller_priv_host,
+      auth_protocol     => $auth_protocol,
+      auth_uri          => $keystone_pub_url,
+      identity_uri      => $keystone_admin_url,
+    }
   }
 
   if str2bool_i("$ceilometer") {
@@ -249,13 +299,13 @@ class quickstack::compute_common (
       rabbit_port     => $real_amqp_port,
       rabbit_userid   => $amqp_username,
       rabbit_password => $amqp_password,
-      rabbit_use_ssl  => $ssl,
+      rabbit_use_ssl  => $amqp_ssl,
       rpc_backend     => amqp_backend('ceilometer', $amqp_provider),
       verbose         => $verbose,
     }
 
     class { 'ceilometer::agent::auth':
-      auth_url      => "http://${auth_host}:35357/v2.0",
+      auth_url      => "${auth_protocol}://${auth_host}:35357/v2.0",
       auth_password => $ceilometer_user_password,
     }
 

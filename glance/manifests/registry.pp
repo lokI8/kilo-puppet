@@ -162,6 +162,12 @@ class glance::registry(
     warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
   }
 
+  if ($auth_protocol == 'https') {
+    glance_registry_config {
+      'keystone_authtoken/cafile': value => $ca_file;
+    }
+  }
+
   if ( $glance::params::api_package_name != $glance::params::registry_package_name ) {
     ensure_packages( [$glance::params::registry_package_name],
       {
@@ -305,7 +311,9 @@ class glance::registry(
       'DEFAULT/key_file': ensure => absent;
     }
   }
-  if $ca_file {
+  
+  # Disable ca_file flag in [DEFAULT] section.
+  if $ca_file and false {
     glance_registry_config {
       'DEFAULT/ca_file'   : value => $ca_file;
     }

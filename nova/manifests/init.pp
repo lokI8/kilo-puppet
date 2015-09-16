@@ -309,6 +309,12 @@ class nova(
   # maintain backward compatibility
   include ::nova::db
 
+  if str2bool_i("$use_ssl") {
+    $auth_protocol = 'https'
+  } else {
+    $auth_protocol = 'http'
+  }
+
   if $mysql_module {
     warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
   }
@@ -324,6 +330,12 @@ class nova(
     }
     if !$key_file {
       fail('The key_file parameter is required when use_ssl is set to true')
+    }
+
+    if ($use_ssl) {
+      class {'moc_openstack::ssl::add_nova_cert':
+        require => Package['nova-common'],
+      }
     }
   }
 
@@ -442,7 +454,22 @@ class nova(
 
   if $image_service == 'nova.image.glance.GlanceImageService' {
     if $glance_api_servers {
-      nova_config { 'glance/api_servers': value => $glance_api_servers }
+      nova_config { 
+        'glance/api_servers': value => $glance_api_servers;
+        'glance/protocol':    value => $auth_protocol;
+      }
+    }
+  }
+
+  if $use_ssl {
+    nova_config {
+      'cinder/endpoint_template':    value => "${auth_protocol}://${controller_pub_host}:8776/v1/%(project_id)s";
+      'cinder/ca_certificates_file': value => $ca_file;
+      'keystone_authtoken/cafile':   value => $ca_file;
+      'ssl/enable':                  value => true;
+      'ssl/ca_file':                 value => $ca_file;
+      'ssl/cert_file':               value => $cert_file;
+      'ssl/key_file':                value => $key_file;
     }
   }
 
@@ -555,7 +582,12 @@ class nova(
       'DEFAULT/ssl_cert_file' :    value => $cert_file;
       'DEFAULT/ssl_key_file' :     value => $key_file;
     }
-    if $ca_file {
+
+    # Making the condition explicitly false.
+    # This is because, we faced the issue of ssl not working when
+    # ca_file was specified in [DEFAULT] section. Commenting it out
+    # unless a workaround is known.
+    if $ca_file and false {
       nova_config { 'DEFAULT/ssl_ca_file' :
         value => $ca_file,
       }

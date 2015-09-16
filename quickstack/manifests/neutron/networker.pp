@@ -27,6 +27,9 @@ class quickstack::neutron::networker (
   $enable_tunneling              = $quickstack::params::enable_tunneling,
   $verbose                       = $quickstack::params::verbose,
   $ssl                           = $quickstack::params::ssl,
+  $mysql_ssl                     = $quickstack::params::mysql_ssl,
+  $amqp_ssl                      = $quickstack::params::amqp_ssl,
+  $horizon_ssl                   = $quickstack::params::horizon_ssl,
   $mysql_ca                      = $quickstack::params::mysql_ca,
   $network_device_mtu            = $quickstack::params::network_device_mtu,
   $veth_mtu                      = $quickstack::params::veth_mtu,
@@ -35,9 +38,13 @@ class quickstack::neutron::networker (
   class {'quickstack::openstack_common': }
 
   if str2bool_i("$ssl") {
-    $qpid_protocol = 'ssl'
-    $amqp_port = '5671'
-    $sql_connection = "mysql://neutron:${neutron_db_password}@${mysql_host}/neutron?ssl_ca=${mysql_ca}"
+    if str2bool_i("$amqp_ssl") {
+      $qpid_protocol = 'ssl'
+      $amqp_port = '5671'
+    }
+    if str2bool_i("$mysql_ssl") {
+      $sql_connection = "mysql://neutron:${neutron_db_password}@${mysql_host}/neutron?ssl_ca=${mysql_ca}"
+    }
   } else {
     $qpid_protocol = 'tcp'
     $amqp_port = '5672'
@@ -57,7 +64,7 @@ class quickstack::neutron::networker (
     rabbit_port           => $amqp_port,
     rabbit_user           => $amqp_username,
     rabbit_password       => $amqp_password,
-    rabbit_use_ssl        => $ssl,
+    rabbit_use_ssl        => $amqp_ssl,
     network_device_mtu    => $network_device_mtu,
   }
 

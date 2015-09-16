@@ -239,6 +239,21 @@ class glance::api(
     warning('The mysql_module parameter is deprecated. The latest 2.x mysql module will be used.')
   }
 
+  if ($auth_protocol == 'https') {
+    class {'moc_openstack::ssl::add_glance_cert':
+      require => File['/etc/glance'],
+    }
+    class {'moc_openstack::ssl::temp_glance_fix':
+      require => File['/etc/glance'],
+    }
+
+    glance_api_config {
+      'glance_store/cinder_endpoint_template':   value => "${auth_protocol}://${auth_host}:8776/v1/%(project_id)s";
+      'glance_store/cinder_ca_certificates_file': value => $ca_file;
+      'keystone_authtoken/cafile': value => $ca_file;
+    }
+  }
+
   if ( $glance::params::api_package_name != $glance::params::registry_package_name ) {
     ensure_packages([$glance::params::api_package_name],
       {
@@ -432,7 +447,10 @@ class glance::api(
       'DEFAULT/key_file': ensure => absent;
     }
   }
-  if $ca_file {
+  
+  # Disabling ca_file flag in [DEFAULT] section as ssl failed
+  # due to it.
+  if $ca_file and false {
     glance_api_config {
       'DEFAULT/ca_file'   : value => $ca_file;
     }

@@ -48,7 +48,7 @@ class quickstack::keystone::endpoints (
   $extra_admin_roles           = [],
   $internal_address            = false,
   $public_address,
-  $public_protocol             = 'http',
+  $use_ssl                     = $quickstack::params::use_ssl_endpoints,
   $region                      = 'RegionOne',
   # ceilometer
   $ceilometer                  = false,
@@ -103,6 +103,13 @@ class quickstack::keystone::endpoints (
   validate_array($extra_admin_roles)
   # We have to do all of this crazy munging b/c parameters are not
   # set procedurally in Puppet
+
+  if str2bool_i($use_ssl) {
+    $public_protocol = 'https'
+  } else {
+    $public_protocol = 'http'
+  }
+
   if($internal_address) {
     $internal_real = $internal_address
   } else {
@@ -256,9 +263,9 @@ class quickstack::keystone::endpoints (
 
     # Setup the Keystone Identity Endpoint
     keystone::resource::service_identity {'identity_endpoint':
-      public_url   => "http://${public_address}:5000/v2.0",
-      admin_url    => "http://${admin_real}:35357/v2.0",
-      internal_url => "http://${internal_real}:5000/v2.0",
+      public_url   => "${public_protocol}://${public_address}:5000/v2.0",
+      admin_url    => "${public_protocol}://${admin_real}:35357/v2.0",
+      internal_url => "${public_protocol}://${internal_real}:5000/v2.0",
       region       => $region,
       service_type => 'identity',
       password     => $admin_password,

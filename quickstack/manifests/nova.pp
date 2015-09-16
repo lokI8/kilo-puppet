@@ -147,13 +147,21 @@ class quickstack::nova (
   $ram_allocation_ratio         = '1.5',
   $cpu_allocation_ratio         = '16',
   $verbose                      = 'false',
+  $use_ssl_endpoints            = $quickstack::params::use_ssl_endpoints,
+  $neutron_url                  = 'http://127.0.0.1:9696',
 ) {
+
+    if str2bool("$use_ssl_endpoints") {
+      $auth_protocol = 'https'
+    } else {
+      $auth_protocol = 'http'
+    }
 
     # TODO: add ssl config here
     # bring over the ssl/not chunk from
     # controller_common, that maybe should go in a function
     $nova_sql_connection = "mysql://${db_user}:${db_password}@${db_host}/${db_name}"
-    $glance_api_uri =  "http://${glance_host}:${glance_port}/v1"
+    $glance_api_uri =  "${auth_protocol}://${glance_host}:${glance_port}/v1"
 
     class { '::nova':
       database_connection => $nova_sql_connection,
@@ -236,6 +244,10 @@ class quickstack::nova (
     class {'::nova::conductor':
       enabled => str2bool_i("$enabled"),
       manage_service => str2bool_i("$manage_service"),
+    }
+
+    class {'nova::network::neutron':
+      neutron_url => $neutron_url,
     }
 
     class { '::nova::vncproxy':

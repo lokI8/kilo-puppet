@@ -283,10 +283,26 @@ class neutron (
     if !$key_file {
       fail('The key_file parameter is required when use_ssl is set to true')
     }
+
+    if str2bool_i("$use_ssl") {
+      class {"moc_openstack::ssl::add_neutron_cert":
+        require => Package['neutron'],
+      }
+    }
   }
 
   if $ca_file and !$use_ssl {
     fail('The ca_file parameter requires that use_ssl to be set to true')
+  }
+
+  if $ca_file and $use_ssl {
+    neutron_api_config {
+      'filter:authtoken/cafile': value => $ca_file;
+    }
+
+    neutron_config {
+      'keystone_authtoken/cafile': value => $ca_file;
+    }
   }
 
   if $kombu_ssl_ca_certs and !$rabbit_use_ssl {
@@ -482,7 +498,9 @@ class neutron (
       'DEFAULT/ssl_cert_file' : value => $cert_file;
       'DEFAULT/ssl_key_file'  : value => $key_file;
     }
-    if $ca_file {
+
+    # Disable ssl_ca_file flag in [DEFAULT] section.
+    if $ca_file and false {
       neutron_config { 'DEFAULT/ssl_ca_file'   : value => $ca_file; }
     } else {
       neutron_config { 'DEFAULT/ssl_ca_file'   : ensure => absent; }
