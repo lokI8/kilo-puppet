@@ -89,14 +89,24 @@ class quickstack::compute_common (
 
   class {'quickstack::openstack_common': }
 
+  # Temporary fix for glanceclient bug: 1244291
+  class {'moc_openstack::ssl::temp_glance_fix':
+    require => Package['nova-common'],
+  }
+
   if str2bool_i("$use_ssl") {
     if str2bool_i("$amqp_ssl") {
       $qpid_protocol = 'ssl'
       $real_amqp_port = $amqp_ssl_port
+    } else {
+      $qpid_protocol = 'tcp'
+      $real_amqp_port = $amqp_port
     }
 
     if str2bool_i("$mysql_ssl") {
       $nova_sql_connection = "mysql://nova:${nova_db_password}@${mysql_host}/nova?ssl_ca=${mysql_ca}"
+    } else {
+      $nova_sql_connection = "mysql://nova:${nova_db_password}@${mysql_host}/nova"
     }
 
     class {'moc_openstack::ssl::install_rootca':
