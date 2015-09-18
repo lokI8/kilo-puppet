@@ -44,10 +44,17 @@ class quickstack::storage_backend::cinder(
     if str2bool_i("$amqp_ssl") {
       $qpid_protocol = 'ssl'
       $amqp_port = '5671'
+    } else {
+      $qpid_protocol = 'tcp'
+      $amqp_port = '5672'
     }
+
     if str2bool_i("$mysql_ssl") {
       $sql_connection = "mysql://cinder:${cinder_db_password}@${mysql_host}/cinder?ssl_ca=${mysql_ca}"
+    } else {
+      $sql_connection = "mysql://cinder:${cinder_db_password}@${mysql_host}/cinder"
     }
+
   } else {
     $qpid_protocol = 'tcp'
     $amqp_port = '5672'

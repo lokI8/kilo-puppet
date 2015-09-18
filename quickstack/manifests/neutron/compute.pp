@@ -84,18 +84,30 @@ class quickstack::neutron::compute (
   $ca_file                      = $quickstack::params::root_ca_cert,
   $neutron_pub_url              = $quickstack::params::neutron_pub_url,
   $keystone_admin_url           = $quickstack::params::keystone_admin_url,
-  $auth_protocol                = $quickstack::params::auth_protocol,
 
 ) inherits quickstack::params {
+
+  if str2bool_i("$use_ssl") {
+    auth_protocol = 'https'
+  } else {
+    auth_protocol = 'http'
+  }
 
   if str2bool_i("$ssl") {
     if str2bool_i("$amqp_ssl") {
       $qpid_protocol = 'ssl'
       $real_amqp_port = $amqp_ssl_port
+    } else {
+      $qpid_protocol = 'tcp'
+      $real_amqp_port = $amqp_port
     }
+
     if str2bool_i("$mysql_ssl") {
       $sql_connection = "mysql://neutron:${neutron_db_password}@${mysql_host}/neutron?ssl_ca=${mysql_ca}"
+    } else {
+      $sql_connection = "mysql://neutron:${neutron_db_password}@${mysql_host}/neutron"
     }
+
   } else {
     $qpid_protocol = 'tcp'
     $real_amqp_port = $amqp_port

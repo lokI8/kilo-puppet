@@ -147,11 +147,11 @@ class quickstack::nova (
   $ram_allocation_ratio         = '1.5',
   $cpu_allocation_ratio         = '16',
   $verbose                      = 'false',
-  $use_ssl_endpoints            = $quickstack::params::use_ssl_endpoints,
+  $use_ssl                      = $quickstack::params::use_ssl_endpoints,
   $neutron_url                  = 'http://127.0.0.1:9696',
 ) {
 
-    if str2bool("$use_ssl_endpoints") {
+    if str2bool("$use_ssl") {
       $auth_protocol = 'https'
     } else {
       $auth_protocol = 'http'

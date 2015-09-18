@@ -70,7 +70,6 @@ class quickstack::compute_common (
   $vncproxy_host                = undef,
   $glance_priv_url              = $quickstack::params::glance_priv_url,
   $use_ssl                      = $quickstack::params::use_ssl_endpoints,
-  $auth_protocol                = $quickstack::params::auth_protocol,
   $enabled_ssl_apis             = ['osapi_compute'],
   $key_file                     = $quickstack::params::nova_key,
   $cert_file                    = $quickstack::params::nova_cert,
@@ -86,6 +85,12 @@ class quickstack::compute_common (
   $ceph_vlan                    = $quickstack::params::ceph_vlan,
 
 ) inherits quickstack::params {
+
+  if str2bool_i("$use_ssl") {
+    auth_protocol = 'https'
+  } else {
+    auth_protocol = 'http'
+  }
 
   class {'quickstack::openstack_common': }
 

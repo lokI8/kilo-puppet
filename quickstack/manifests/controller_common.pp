@@ -135,9 +135,9 @@ class quickstack::controller_common (
   $horizon_cert                  = $quickstack::params::horizon_cert,
   $horizon_key                   = $quickstack::params::horizon_key,
   $amqp_nssdb_password           = $quickstack::params::amqp_nssdb_password,
-  $ceph_nodes			               = $quickstack::params::ceph_nodes,
-  $ceph_enpoints		             = $quickstack::params::ceph_endpoints,
-  $ceph_user			               = $quickstack::params::ceph_user,
+  $ceph_nodes                    = $quickstack::params::ceph_nodes,
+  $ceph_enpoints                 = $quickstack::params::ceph_endpoints,
+  $ceph_user                     = $quickstack::params::ceph_user,
   $ceph_vlan                     = $quickstack::params::ceph_vlan,
   $use_ssl_endpoints             = $quickstack::params::use_ssl_endpoints,
   $neutron_admin_password        = $quickstack::params::neutron_user_password,
@@ -709,6 +709,7 @@ class quickstack::controller_common (
     class { 'quickstack::admin_client':
       admin_password        => $admin_password,
       controller_admin_host => $real_admin_host,
+      auth_protocol         => $auth_protocol,
     }
   }
 

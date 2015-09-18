@@ -180,9 +180,14 @@ class quickstack::neutron::controller (
   $ca_file                       = $quickstack::params::root_ca_cert,
   $neutron_pub_url               = $quickstack::params::neutron_pub_url,
   $keystone_admin_url            = $quickstack::params::keystone_admin_url,
-  $auth_protocol                 = $quickstack::params::auth_protocol,
   $ovs_l2_population             = 'true',
 ) inherits quickstack::params {
+
+  if str2bool_i("$use_ssl") {
+    auth_protocol = 'https'
+  } else {
+    auth_protocol = 'http'
+  }
 
   if str2bool_i("$ssl") {
     if str2bool_i("$amqp_ssl") {

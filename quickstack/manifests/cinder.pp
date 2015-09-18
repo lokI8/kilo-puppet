@@ -29,7 +29,6 @@ class quickstack::cinder(
   $verbose        = false,
   $auth_uri        = 'http://localhost:5000/v2.0',
   $identity_uri    = 'http://localhost:35357/v2.0',
-  $auth_protocol   = 'http',
   $cert_file       = '/etc/pki/tls/certs/cinder.crt',
   $key_file        = '/etc/pki/tls/private/cinder.key',
   $ca_file         = '/etc/pki/ca-trust/source/anchors/rootCA.crt',
@@ -37,6 +36,12 @@ class quickstack::cinder(
   $nova_pub_url    = 'http://localhost:8776/',
 ) {
   include ::quickstack::firewall::cinder
+
+  if str2bool_i("$use_ssl") {
+    auth_protocol = 'https'
+  } else {
+    auth_protocol = 'http'
+  }
 
   $amqp_password_safe_for_cinder = $amqp_password ? {
     ''      => 'guest',
