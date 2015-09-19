@@ -1,6 +1,6 @@
 class moc_openstack::ssl::install_rootca (
   $rootCA_crt       = '/etc/pki/ca-trust/source/anchors/rootCA.crt',
-  $rootCA_crt_path  = 'puppet:///modules/quickstack/certs/rootCA.crt',
+  $rootCA_crt_path  = 'puppet:///modules/moc_openstack/certs/rootCA.crt',
   $trusted_store    = '/etc/pki/tls/certs/ca-bundle.crt',
 ) {
 

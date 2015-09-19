@@ -1,8 +1,8 @@
 class moc_openstack::ssl::add_cinder_cert (
   $cinder_crt      = "/etc/pki/tls/certs/cinder.crt",
   $cinder_key      = "/etc/pki/tls/private/cinder.key",
-  $cinder_crt_path = "puppet:///modules/quickstack/certs/host.crt",
-  $cinder_key_path = "puppet:///modules/quickstack/certs/host.key",
+  $cinder_crt_path = "puppet:///modules/moc_openstack/certs/host.crt",
+  $cinder_key_path = "puppet:///modules/moc_openstack/certs/host.key",
 ) {
 
   file { $cinder_crt:
