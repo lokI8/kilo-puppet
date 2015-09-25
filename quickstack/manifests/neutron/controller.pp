@@ -445,7 +445,6 @@ class quickstack::neutron::controller (
       tenant_network_type          => $tenant_network_type,
     }
   }
-  neutron_plugin_ovs { 'AGENT/l2_population': value => "$ovs_l2_population"; }
 
   $local_ip = find_ip("$ovs_tunnel_network","$ovs_tunnel_iface","")
 
@@ -456,6 +455,7 @@ class quickstack::neutron::controller (
     enable_tunneling => str2bool_i("$enable_tunneling"),
     tunnel_types     => $ovs_tunnel_types,
     vxlan_udp_port   => $ovs_vxlan_udp_port,
+    l2_population    => $ovs_l2_population,
   }
 
   class { '::neutron::agents::dhcp': }
