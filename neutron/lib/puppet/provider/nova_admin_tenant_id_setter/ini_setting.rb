@@ -12,6 +12,7 @@ require 'rubygems'
 require 'net/http'
 require 'net/https'
 require 'json'
+require 'openssl'
 require 'puppet/util/inifile'
 
 class KeystoneError < Puppet::Error
@@ -38,7 +39,11 @@ def neutron_handle_request(req, url)
         # found that if we use Net::HTTP.start with url.hostname the incriminated code
         # won't be hit.
         use_ssl = url.scheme == "https" ? true : false
-        http = Net::HTTP.start(url.hostname, url.port, {:use_ssl => use_ssl})
+	if use_ssl
+	    http = Net::HTTP.start(url.hostname, url.port, {:use_ssl => use_ssl, :verify_mode => OpenSSL::SSL::VERIFY_NONE})
+	else
+	    http = Net::HTTP.start(url.hostname, url.port, {:use_ssl => use_ssl})
+	end
         res = http.request(req)
 
         if res.code != '200'
