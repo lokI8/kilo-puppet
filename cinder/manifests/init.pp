@@ -261,9 +261,6 @@ class cinder (
   $default_availability_zone   = false,
   $enable_v1_api               = true,
   $enable_v2_api               = true,
-  $auth_uri                    = 'http://localhost:5000/',
-  $identity_uri                = 'http://localhost:35357/',
-  $nova_pub_url                = 'http://localhost:8776/',
   # DEPRECATED PARAMETERS
   $mysql_module                = undef,
 ) {
@@ -482,10 +479,7 @@ class cinder (
     cinder_config {
       'DEFAULT/ssl_cert_file' : value => $cert_file;
       'DEFAULT/ssl_key_file' :  value => $key_file;
-      'DEFAULT/nova_endpoint_template': value => $nova_pub_url;
       'keystone_authtoken/auth_protocol': value => 'https';
-      'keystone_authtoken/auth_uri': value => $keystone_auth_uri;
-      'keystone_authtoken/identity_uri': value => $keystone_identity_uri;
       'keystone_authtoken/cafile': value => $ca_file;
     }
 

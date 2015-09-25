@@ -130,6 +130,7 @@ class cinder::api (
   $keystone_user              = 'cinder',
   $auth_uri                   = false,
   $identity_uri               = false,
+  $nova_endpoint_template     = 'http://127.0.0.1:8776/',
   $os_region_name             = undef,
   $service_workers            = $::processorcount,
   $package_ensure             = 'present',
@@ -205,8 +206,9 @@ class cinder::api (
   }
 
   cinder_config {
-    'DEFAULT/osapi_volume_listen':  value => $bind_host;
-    'DEFAULT/osapi_volume_workers': value => $service_workers;
+    'DEFAULT/osapi_volume_listen':    value => $bind_host;
+    'DEFAULT/osapi_volume_workers':   value => $service_workers;
+    'DEFAULT/nova_endpoint_template': value => $nova_pub_url;
   }
 
   if $os_region_name {
