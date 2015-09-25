@@ -1,6 +1,6 @@
 class moc_openstack::ssl::temp_glance_fix (
   $file   = "/usr/lib/python2.7/site-packages/glanceclient/common/https.py",
-  $source = "puppet:///modules/quickstack/https.py",
+  $source = "puppet:///modules/moc_openstack/https.py",
 ) {
 
   file { $file:

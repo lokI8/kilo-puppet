@@ -1,8 +1,8 @@
 class moc_openstack::ssl::add_nova_cert (
   $nova_crt      = "/etc/pki/tls/certs/nova.crt",
   $nova_key      = "/etc/pki/tls/private/nova.key",
-  $nova_crt_path = "puppet:///modules/quickstack/certs/host.crt",
-  $nova_key_path = "puppet:///modules/quickstack/certs/host.key",
+  $nova_crt_path = "puppet:///modules/moc_openstack/certs/host.crt",
+  $nova_key_path = "puppet:///modules/moc_openstack/certs/host.key",
 ) {
 
   file { $nova_crt:

@@ -1,8 +1,8 @@
 class moc_openstack::ssl::add_keystone_cert (
   $keystone_crt      = "/etc/pki/tls/certs/keystone.crt",
   $keystone_key      = "/etc/pki/tls/private/keystone.key",
-  $keystone_crt_path = "puppet:///modules/quickstack/certs/host.crt",
-  $keystone_key_path = "puppet:///modules/quickstack/certs/host.key",
+  $keystone_crt_path = "puppet:///modules/moc_openstack/certs/host.crt",
+  $keystone_key_path = "puppet:///modules/moc_openstack/certs/host.key",
 ) {
 
   file { $keystone_crt:
