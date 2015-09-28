@@ -88,9 +88,9 @@ class quickstack::neutron::compute (
 ) inherits quickstack::params {
 
   if str2bool_i("$use_ssl") {
-    auth_protocol = 'https'
+    $auth_protocol = 'https'
   } else {
-    auth_protocol = 'http'
+    $auth_protocol = 'http'
   }
 
   if str2bool_i("$ssl") {

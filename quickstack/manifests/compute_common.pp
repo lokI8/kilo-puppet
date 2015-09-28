@@ -87,9 +87,9 @@ class quickstack::compute_common (
 ) inherits quickstack::params {
 
   if str2bool_i("$use_ssl") {
-    auth_protocol = 'https'
+    $auth_protocol = 'https'
   } else {
-    auth_protocol = 'http'
+    $auth_protocol = 'http'
   }
 
   class {'quickstack::openstack_common': }
