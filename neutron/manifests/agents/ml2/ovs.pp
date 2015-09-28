@@ -109,6 +109,7 @@ class neutron::agents::ml2::ovs (
   $arp_responder              = false,
   $firewall_driver            = 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
   $enable_distributed_routing = false,
+  $veth_mtu                   = undef,
 ) {
 
   include ::neutron::params
@@ -153,6 +154,7 @@ class neutron::agents::ml2::ovs (
   }
 
   neutron_agent_ovs {
+    'agent/veth_mtu':                   value => $veth_mtu;
     'agent/polling_interval':           value => $polling_interval;
     'agent/l2_population':              value => $l2_population;
     'agent/arp_responder':              value => $arp_responder;

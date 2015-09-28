@@ -407,6 +407,7 @@ class quickstack::controller_common (
     qpid_protocol       => $qpid_protocol,
     qpid_port           => $amqp_port,
     require             => Class['quickstack::db::mysql', 'quickstack::amqp::server'],
+    controller_pub_host => $controller_pub_host,
     use_ssl             => $use_ssl_endpoints,
     enabled_ssl_apis    => ['osapi_compute'],
     ca_file             => $root_ca_cert,

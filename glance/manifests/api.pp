@@ -243,9 +243,6 @@ class glance::api(
     class {'moc_openstack::ssl::add_glance_cert':
       require => File['/etc/glance'],
     }
-    class {'moc_openstack::ssl::temp_glance_fix':
-      require => File['/etc/glance'],
-    }
 
     glance_api_config {
       'glance_store/cinder_endpoint_template':   value => "${auth_protocol}://${auth_host}:8776/v1/%(project_id)s";

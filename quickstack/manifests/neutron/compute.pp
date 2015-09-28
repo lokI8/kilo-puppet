@@ -183,10 +183,6 @@ class quickstack::neutron::compute (
       'ml2_type_vxlan/vxlan_group'       : value => $vxlan_group;
     }
 
-    # We seem to have lost this in the switch away from agents::ovs in
-    # puppet-neutron, so adding here.
-    neutron_plugin_ovs { 'agent/veth_mtu': value    => "$veth_mtu"; }
-
     $local_ip = find_ip("$ovs_tunnel_network","$ovs_tunnel_iface","")
     class { '::neutron::agents::ml2::ovs':
       bridge_uplinks   => $ovs_bridge_uplinks,
@@ -196,7 +192,12 @@ class quickstack::neutron::compute (
       enable_tunneling => str2bool_i("$enable_tunneling"),
       tunnel_types     => $ovs_tunnel_types,
       vxlan_udp_port   => $ovs_vxlan_udp_port,
+      veth_mtu         => $veth_mtu,
     }
+
+    # We seem to have lost this in the switch away from agents::ovs in
+    # puppet-neutron, so adding here.
+    # neutron_plugin_ovs { 'agent/veth_mtu': value    => "$veth_mtu"; }
   }
 
   class { '::nova::network::neutron':

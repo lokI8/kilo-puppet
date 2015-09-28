@@ -287,6 +287,7 @@ class nova(
   $periodic_interval        = '60',
   $report_interval          = '10',
   $rootwrap_config          = '/etc/nova/rootwrap.conf',
+  $controller_pub_host      = 'localhost',
   $use_ssl                  = false,
   $enabled_ssl_apis         = ['ec2', 'metadata', 'osapi_compute'],
   $ca_file                  = false,

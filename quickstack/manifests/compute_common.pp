@@ -261,6 +261,7 @@ class quickstack::compute_common (
     rabbit_use_ssl      => $amqp_ssl,
     rabbit_hosts        => $rabbit_hosts,
     verbose             => $verbose,
+    controller_pub_host => $controller_pub_host,
     use_ssl             => $use_ssl,
     enabled_ssl_apis    => ['osapi_compute'],
     key_file            => $key_file,

@@ -285,6 +285,7 @@ class cinder (
     if ("$use_ssl") {
       class {'moc_openstack::ssl::add_cinder_cert':
         require  => Package['cinder'],
+	before   => Service['cinder-api'],
       }
     }
   }
@@ -481,10 +482,6 @@ class cinder (
       'DEFAULT/ssl_key_file' :  value => $key_file;
       'keystone_authtoken/auth_protocol': value => 'https';
       'keystone_authtoken/cafile': value => $ca_file;
-    }
-
-    cinder_api_paste_ini {
-      'filter:authtoken/cafile': value => $ca_file;
     }
 
     # Disabling ca_file flag in [DEFAULT] section.

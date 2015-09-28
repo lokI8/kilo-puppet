@@ -149,6 +149,7 @@ class cinder::api (
   $keystone_auth_host         = 'localhost',
   $keystone_auth_port         = '35357',
   $keystone_auth_protocol     = 'http',
+  $ca_file                    = undef,
   $keystone_auth_admin_prefix = false,
   $service_port               = '5000',
 ) {
@@ -242,6 +243,12 @@ class cinder::api (
       'filter:authtoken/admin_tenant_name': value => $keystone_tenant;
       'filter:authtoken/admin_user':        value => $keystone_user;
       'filter:authtoken/admin_password':    value => $keystone_password, secret => true;
+    }
+
+    if keystone_auth_protocol == 'https' {
+      cinder_api_paste_ini {
+        'filter:authtoken/cafile': value => $ca_file;
+      }
     }
 
     # if both auth_uri and identity_uri are set we skip these deprecated settings entirely

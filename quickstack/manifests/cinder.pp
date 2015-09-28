@@ -87,9 +87,6 @@ class quickstack::cinder(
     cert_file           => $cert_file,
     key_file            => $key_file,
     ca_file             => $ca_file,
-    auth_uri            => $auth_uri,
-    identity_uri        => $identity_uri,
-    nova_pub_url        => $nova_pub_url,
   }
   # FIXME: after we drop support for Puppet <= 3.6, we can use
   # `contain ::cinder` instead of the anchors here, and use fully qualified
