@@ -38,9 +38,9 @@ class quickstack::cinder(
   include ::quickstack::firewall::cinder
 
   if str2bool_i("$use_ssl") {
-    auth_protocol = 'https'
+    $auth_protocol = 'https'
   } else {
-    auth_protocol = 'http'
+    $auth_protocol = 'http'
   }
 
   $amqp_password_safe_for_cinder = $amqp_password ? {

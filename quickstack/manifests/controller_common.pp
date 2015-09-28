@@ -494,7 +494,6 @@ class quickstack::controller_common (
     verbose        => $verbose,
     auth_uri       => $keystone_pub_url,
     identity_uri   => $keystone_admin_url,
-    auth_protocol  => $auth_protocol,
     use_ssl        => $use_ssl_endpoints,
     cert_file      => $cinder_cert,
     key_file       => $cinder_key,
