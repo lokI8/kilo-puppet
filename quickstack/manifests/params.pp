@@ -41,10 +41,14 @@ class quickstack::params (
   $keystone_pub_url,
   $keystone_priv_url,
   $keystone_admin_url,
+  $auth_protocol,
   # nova
   $nova_pub_url,
   $nova_priv_url,
   $nova_admin_url,
+  $nova_public_url_v3,
+  $nova_internal_url_v3,
+  $nova_admin_url_v3,
   # glance
   $glance_pub_url,
   $glance_priv_url,
@@ -183,7 +187,22 @@ class quickstack::params (
   $ovs_tunnel_iface, 
   $network_device_mtu,
   $veth_mtu,
-  
+
+  # ssl certificates
+  $root_ca_cert,
+  $horizon_key,
+  $horizon_cert,
+  $nova_key,
+  $nova_cert,
+  $keystone_key,
+  $keystone_cert,
+  $cinder_key,
+  $cinder_cert,
+  $glance_key,
+  $glance_cert,
+  $neutron_key,
+  $neutron_cert,
+
   # neutron plugin config
   $neutron_core_plugin,
   # If using the Cisco plugin, use either OVS or n1k for virtualised l2
@@ -249,7 +268,7 @@ class quickstack::params (
   $log_level,
   $horizon_app_links,
   $support_profile,
-  
+
   # provider network settings
   $provider_vlan_auto_create,
   $provider_vlan_auto_trunk,
@@ -264,6 +283,10 @@ class quickstack::params (
   
   # SSL
   $ssl,
+  $use_ssl_endpoints,
+  $mysql_ssl,
+  $amqp_ssl,
+  $horizon_ssl,
   $freeipa,
   $mysql_ca,
   $mysql_cert,

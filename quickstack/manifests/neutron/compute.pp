@@ -57,6 +57,10 @@ class quickstack::neutron::compute (
   $tunnel_id_ranges             = '1:1000',
   $verbose                      = $quickstack::params::verbose,
   $ssl                          = $quickstack::params::ssl,
+  $mysql_ssl                    = $quickstack::params::mysql_ssl,
+  $amqp_ssl                     = $quickstack::params::amqp_ssl,
+  $horizon_ssl                  = $quickstack::params::horizon_ssl,
+
   $security_group_api           = 'neutron',
   $mysql_ca                     = $quickstack::params::mysql_ca,
   $libvirt_images_rbd_pool      = 'cinder-volumes',
@@ -74,12 +78,36 @@ class quickstack::neutron::compute (
   $vnc_keymap                   = 'en-us',
   $vncproxy_host                = undef,
   $vxlan_group                  = '224.0.0.1',
+  $use_ssl                      = $quickstack::params::use_ssl_endpoints,
+  $cert_file                    = $quickstack::params::neutron_cert,
+  $key_file                     = $quickstack::params::neutron_key,
+  $ca_file                      = $quickstack::params::root_ca_cert,
+  $neutron_pub_url              = $quickstack::params::neutron_pub_url,
+  $keystone_admin_url           = $quickstack::params::keystone_admin_url,
+
 ) inherits quickstack::params {
 
+  if str2bool_i("$use_ssl") {
+    $auth_protocol = 'https'
+  } else {
+    $auth_protocol = 'http'
+  }
+
   if str2bool_i("$ssl") {
-    $qpid_protocol = 'ssl'
-    $real_amqp_port = $amqp_ssl_port
-    $sql_connection = "mysql://neutron:${neutron_db_password}@${mysql_host}/neutron?ssl_ca=${mysql_ca}"
+    if str2bool_i("$amqp_ssl") {
+      $qpid_protocol = 'ssl'
+      $real_amqp_port = $amqp_ssl_port
+    } else {
+      $qpid_protocol = 'tcp'
+      $real_amqp_port = $amqp_port
+    }
+
+    if str2bool_i("$mysql_ssl") {
+      $sql_connection = "mysql://neutron:${neutron_db_password}@${mysql_host}/neutron?ssl_ca=${mysql_ca}"
+    } else {
+      $sql_connection = "mysql://neutron:${neutron_db_password}@${mysql_host}/neutron"
+    }
+
   } else {
     $qpid_protocol = 'tcp'
     $real_amqp_port = $amqp_port
@@ -108,17 +136,21 @@ class quickstack::neutron::compute (
     rabbit_port           => $real_amqp_port,
     rabbit_user           => $amqp_username,
     rabbit_password       => $amqp_password,
-    rabbit_use_ssl        => $ssl,
+    rabbit_use_ssl        => $amqp_ssl,
     rabbit_hosts          => $_rabbit_hosts,
     verbose               => $verbose,
     network_device_mtu    => $network_device_mtu,
+    use_ssl               => $use_ssl,
+    cert_file             => $cert_file,
+    key_file              => $key_file,
+    ca_file               => $ca_file,
   }
   ->
   class { '::neutron::server::notifications':
     notify_nova_on_port_status_changes => true,
     notify_nova_on_port_data_changes   => true,
-    nova_url                           => "http://${nova_host}:8774/v2",
-    nova_admin_auth_url                => "http://${auth_host}:35357/v2.0",
+    nova_url                           => "${auth_protocol}://${nova_host}:8774/v2",
+    nova_admin_auth_url                => "${auth_protocol}://${auth_host}:35357/v2.0",
     nova_admin_username                => "nova",
     nova_admin_password                => "${nova_user_password}",
   }
@@ -151,10 +183,6 @@ class quickstack::neutron::compute (
       'ml2_type_vxlan/vxlan_group'       : value => $vxlan_group;
     }
 
-    # We seem to have lost this in the switch away from agents::ovs in
-    # puppet-neutron, so adding here.
-    neutron_plugin_ovs { 'agent/veth_mtu': value    => "$veth_mtu"; }
-
     $local_ip = find_ip("$ovs_tunnel_network","$ovs_tunnel_iface","")
     class { '::neutron::agents::ml2::ovs':
       bridge_uplinks   => $ovs_bridge_uplinks,
@@ -164,13 +192,18 @@ class quickstack::neutron::compute (
       enable_tunneling => str2bool_i("$enable_tunneling"),
       tunnel_types     => $ovs_tunnel_types,
       vxlan_udp_port   => $ovs_vxlan_udp_port,
+      veth_mtu         => $veth_mtu,
     }
+
+    # We seem to have lost this in the switch away from agents::ovs in
+    # puppet-neutron, so adding here.
+    # neutron_plugin_ovs { 'agent/veth_mtu': value    => "$veth_mtu"; }
   }
 
   class { '::nova::network::neutron':
     neutron_admin_password => $neutron_user_password,
-    neutron_url            => "http://${neutron_host}:9696",
-    neutron_admin_auth_url => "http://${auth_host}:35357/v2.0",
+    neutron_url            => "${auth_protocol}://${neutron_host}:9696",
+    neutron_admin_auth_url => "${auth_protocol}://${auth_host}:35357/v2.0",
     security_group_api     => $security_group_api,
   }
 
@@ -230,6 +263,9 @@ class quickstack::neutron::compute (
     private_network              => $private_network,
     network_device_mtu           => $network_device_mtu,
     vnc_keymap                   => $vnc_keymap,
+    mysql_ssl                    => $mysql_ssl,
+    amqp_ssl                     => $amqp_ssl,
+    horizon_ssl                  => $horizon_ssl,
   }
 
   class {'quickstack::neutron::firewall::gre':}
@@ -237,9 +273,9 @@ class quickstack::neutron::compute (
   class {'quickstack::neutron::firewall::vxlan':
     port => $ovs_vxlan_udp_port,
   }
-  class { '::timezone':
-    timezone => 'America/New_York',
-  }
+  #class { '::timezone':
+  #  timezone => 'America/New_York',
+  #}
 
   class { '::ssh': }
 

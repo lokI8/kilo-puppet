@@ -27,8 +27,21 @@ class quickstack::cinder(
   $manage_service = true,
   $debug          = false,
   $verbose        = false,
+  $auth_uri        = 'http://localhost:5000/v2.0',
+  $identity_uri    = 'http://localhost:35357/v2.0',
+  $cert_file       = '/etc/pki/tls/certs/cinder.crt',
+  $key_file        = '/etc/pki/tls/private/cinder.key',
+  $ca_file         = '/etc/pki/ca-trust/source/anchors/rootCA.crt',
+  $use_ssl         = false,
+  $nova_pub_url    = 'http://localhost:8776/',
 ) {
   include ::quickstack::firewall::cinder
+
+  if str2bool_i("$use_ssl") {
+    $auth_protocol = 'https'
+  } else {
+    $auth_protocol = 'http'
+  }
 
   $amqp_password_safe_for_cinder = $amqp_password ? {
     ''      => 'guest',
@@ -70,6 +83,10 @@ class quickstack::cinder(
     verbose             => str2bool_i("$verbose"),
     use_syslog          => str2bool_i("$use_syslog"),
     log_facility        => $log_facility,
+    use_ssl             => $use_ssl,
+    cert_file           => $cert_file,
+    key_file            => $key_file,
+    ca_file             => $ca_file,
   }
   # FIXME: after we drop support for Puppet <= 3.6, we can use
   # `contain ::cinder` instead of the anchors here, and use fully qualified
@@ -79,13 +96,16 @@ class quickstack::cinder(
   anchor { 'quickstack-cinder-last': }
 
   class {'::cinder::api':
-    keystone_password  => $user_password,
-    keystone_tenant    => "services",
-    keystone_user      => "cinder",
-    keystone_auth_host => $keystone_host,
-    enabled            => str2bool_i("$enabled"),
-    manage_service     => str2bool_i("$manage_service"),
-    bind_host          => $bind_host,
+    keystone_password      => $user_password,
+    keystone_tenant        => "services",
+    keystone_user          => "cinder",
+    keystone_auth_host     => $keystone_host,
+    enabled                => str2bool_i("$enabled"),
+    manage_service         => str2bool_i("$manage_service"),
+    bind_host              => $bind_host,
+    auth_uri               => $auth_uri,
+    identity_uri           => $identity_uri,
+    keystone_auth_protocol => $auth_protocol,
   }
 
   class {'::cinder::scheduler':

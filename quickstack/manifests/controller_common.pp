@@ -73,6 +73,9 @@ class quickstack::controller_common (
   $nova_admin_url                = $quickstack::params::nova_admin_url,
   $nova_priv_url                 = $quickstack::params::nova_priv_url,
   $nova_pub_url                  = $quickstack::params::nova_pub_url,
+  $nova_admin_url_v3             = $quickstack::params::nova_admin_url_v3,
+  $nova_public_url_v3            = $quickstack::params::nova_public_url_v3,
+  $nova_internal_url_v3          = $quickstack::params::nova_internal_url_v3,
   $glance_admin_url              = $quickstack::params::glance_admin_url,
   $glance_priv_url               = $quickstack::params::glance_priv_url,
   $glance_pub_url                = $quickstack::params::glance_pub_url,
@@ -117,6 +120,9 @@ class quickstack::controller_common (
   $amqp_password                 = $quickstack::params::amqp_password,
   $verbose                       = $quickstack::params::verbose,
   $ssl                           = $quickstack::params::ssl,
+  $mysql_ssl                     = $quickstack::params::mysql_ssl,
+  $amqp_ssl                      = $quickstack::params::amqp_ssl,
+  $horizon_ssl                   = $quickstack::params::horizon_ssl,
   $support_profile               = $quickstack::params::support_profile,
   $freeipa                       = $quickstack::params::freeipa,
   $mysql_ca                      = $quickstack::params::mysql_ca,
@@ -129,61 +135,117 @@ class quickstack::controller_common (
   $horizon_cert                  = $quickstack::params::horizon_cert,
   $horizon_key                   = $quickstack::params::horizon_key,
   $amqp_nssdb_password           = $quickstack::params::amqp_nssdb_password,
-  $ceph_nodes			 = $quickstack::params::ceph_nodes,
-  $ceph_enpoints		 = $quickstack::params::ceph_endpoints,
-  $ceph_user			 = $quickstack::params::ceph_user,
+  $ceph_nodes                    = $quickstack::params::ceph_nodes,
+  $ceph_enpoints                 = $quickstack::params::ceph_endpoints,
+  $ceph_user                     = $quickstack::params::ceph_user,
   $ceph_vlan                     = $quickstack::params::ceph_vlan,
+  $use_ssl_endpoints             = $quickstack::params::use_ssl_endpoints,
+  $neutron_admin_password        = $quickstack::params::neutron_user_password,
+  $root_ca_cert                  = $quickstack::params::root_ca_cert,
+  $horizon_key                   = $quickstack::params::horizon_key,
+  $horizon_cert                  = $quickstack::params::horizon_cert,
+  $nova_key                      = $quickstack::params::nova_key,
+  $nova_cert                     = $quickstack::params::nova_cert,
+  $keystone_key                  = $quickstack::params::keystone_key,
+  $keystone_cert                 = $quickstack::params::keystone_cert,
+  $cinder_key                    = $quickstack::params::cinder_key,
+  $cinder_cert                   = $quickstack::params::cinder_cert,
+  $glance_key                    = $quickstack::params::glance_key,
+  $glance_cert                   = $quickstack::params::glance_cert,
+  $neutron_key                   = $quickstack::params::neutron_key,
+  $neutron_cert                  = $quickstack::params::neutron_cert,
 ) inherits quickstack::params {
+
+  if str2bool_i("$use_ssl_endpoints") {
+    $auth_protocol = 'https'
+  } else {
+    $auth_protocol = 'http'
+  }
 
   class {'quickstack::openstack_common': }
   include ::quickstack::cron::keystone_token
 
   if str2bool_i("$ssl") {
-    $qpid_protocol = 'ssl'
-    $amqp_port = '5671'
-    $nova_sql_connection = "mysql://nova:${nova_db_password}@${mysql_host}/nova?ssl_ca=${mysql_ca}"
-    apache::listen { '443': }
+    class {'moc_openstack::ssl::install_rootca':
+      before  => Class['quickstack::amqp::server', 'quickstack::db::mysql'],
+    }
+
+    if str2bool_i("$amqp_ssl"){
+      $qpid_protocol    = 'ssl'
+      $amqp_port        = '5671'
+    } else {
+      $qpid_protocol    = 'tcp'
+      $amqp_port        = '5672'
+    }
+
+    if str2bool_i("$mysql_ssl") {
+      $nova_sql_connection = "mysql://nova:${nova_db_password}@${mysql_host}/nova?ssl_ca=${mysql_ca}"
+    } else {
+      $nova_sql_connection = "mysql://nova:${nova_db_password}@${mysql_host}/nova"
+    }
+
+    if str2bool_i("$horizon_ssl") {
+      class {'moc_openstack::ssl::add_horizon_cert':
+        before => Class['::horizon'],
+      }
+      apache::listen { '443': }
+    }
 
     if str2bool_i("$freeipa") {
       certmonger::request_ipa_cert { 'mysql':
-        seclib => "openssl",
+        seclib    => "openssl",
         principal => "mysql/${controller_priv_host}",
-        key => $mysql_key,
-        cert => $mysql_cert,
-        owner_id => 'mysql',
-        group_id => 'mysql',
+        key       => $mysql_key,
+        cert      => $mysql_cert,
+        owner_id  => 'mysql',
+        group_id  => 'mysql',
       }
       certmonger::request_ipa_cert { 'horizon':
-        seclib => "openssl",
+        seclib    => "openssl",
         principal => "horizon/${controller_pub_host}",
-        key => $horizon_key,
-        cert => $horizon_cert,
-        owner_id => 'apache',
-        group_id => 'apache',
-        hostname => $controller_pub_host,
+        key       => $horizon_key,
+        cert      => $horizon_cert,
+        owner_id  => 'apache',
+        group_id  => 'apache',
+        hostname  => $controller_pub_host,
       }
       if $amqp_provider == 'rabbitmq' {
         certmonger::request_ipa_cert { 'amqp':
-          seclib => "openssl",
+          seclib    => "openssl",
           principal => "amqp/${controller_priv_host}",
-          key => $amqp_key,
-          cert => $amqp_cert,
-          owner_id => 'rabbitmq',
-          group_id => 'rabbitmq',
+          key       => $amqp_key,
+          cert      => $amqp_cert,
+          owner_id  => 'rabbitmq',
+          group_id  => 'rabbitmq',
         }
       }
     } else {
-      if $mysql_ca == undef or $mysql_cert == undef or $mysql_key == undef {
-        fail('The mysql CA, cert and key are all required.')
+      if str2bool_i("$mysql_ssl") {
+        if $mysql_ca == undef or $mysql_cert == undef or
+        $mysql_key == undef {
+          fail('The mysql CA, cert and key are all required.')
+        }
       }
-      if $amqp_ca == undef or $amqp_cert == undef or $amqp_key == undef {
-        fail('The amqp CA, cert and key are all required.')
+      if str2bool_i("$amqp_ssl") {
+        if $amqp_ca == undef or $amqp_cert == undef or
+        $amqp_key == undef {
+          fail('The amqp CA, cert and key are all required.')
+        }
       }
-      if $horizon_ca == undef or $horizon_cert == undef or
+      if str2bool_i("$horizon_ssl") {
+        if $horizon_ca == undef or $horizon_cert == undef or
         $horizon_key == undef {
-        fail('The horizon CA, cert and key are all required.')
+          fail('The horizon CA, cert and key are all required.')
+        }
       }
     }
+
+    if str2bool_i("$use_ssl_endpoints") {
+      class {'moc_openstack::ssl::add_keystone_cert':}
+    }
+
+    #class {'::moc_openstack::ssl::additional_params':}
+
   } else {
       $qpid_protocol = 'tcp'
       $amqp_port = '5672'
@@ -201,7 +263,7 @@ class quickstack::controller_common (
     # MySQL
     mysql_bind_address     => '0.0.0.0',
     mysql_account_security => true,
-    mysql_ssl              => str2bool_i("$ssl"),
+    mysql_ssl              => $mysql_ssl,
     mysql_ca               => $mysql_ca,
     mysql_cert             => $mysql_cert,
     mysql_key              => $mysql_key,
@@ -222,7 +284,7 @@ class quickstack::controller_common (
     amqp_ca       => $amqp_ca,
     amqp_cert     => $amqp_cert,
     amqp_key      => $amqp_key,
-    ssl           => $ssl,
+    ssl           => $amqp_ssl,
     freeipa       => $freeipa,
   }
 
@@ -230,7 +292,7 @@ class quickstack::controller_common (
   class {'openstack::keystone':
     db_host                 => $mysql_host,
     db_password             => $keystone_db_password,
-    db_ssl                  => str2bool_i("$ssl"),
+    db_ssl                  => $mysql_ssl,
     db_ssl_ca               => $mysql_ca,
     admin_token             => $keystone_admin_token,
     admin_email             => $admin_email,
@@ -239,6 +301,9 @@ class quickstack::controller_common (
     nova_user_password      => $nova_user_password,
     cinder_user_password    => $cinder_user_password,
     neutron_user_password   => $neutron_user_password,
+    public_protocol         => $auth_protocol,
+    internal_protocol       => $auth_protocol,
+    admin_protocol          => $auth_protocol,
 
     #Not being passed to ::keystone, but still included in OS-puppet
     public_address          => $controller_pub_host,
@@ -256,6 +321,9 @@ class quickstack::controller_common (
     nova_admin_url          => $nova_admin_url,
     nova_priv_url           => $nova_priv_url,
     nova_pub_url            => $nova_pub_url,
+    nova_public_url_v3      => $nova_public_url_v3,
+    nova_internal_url_v3    => $nova_internal_url_v3,
+    nova_admin_url_v3       => $nova_admin_url_v3,
     glance_admin_url        => $glance_admin_url,
     glance_priv_url         => $glance_priv_url,
     glance_pub_url          => $glance_pub_url,
@@ -281,6 +349,10 @@ class quickstack::controller_common (
 
     neutron                 => str2bool_i("$neutron"),
     enabled                 => true,
+    enable_ssl              => $use_ssl_endpoints,
+    ssl_certfile            => $keystone_cert,
+    ssl_keyfile             => $keystone_key,
+    ssl_ca_certs            => $root_ca_cert,
     require                 => Class['quickstack::db::mysql'],
   }
 
@@ -293,7 +365,7 @@ class quickstack::controller_common (
 
   class {'quickstack::glance':
     db_host        => $mysql_host,
-    db_ssl         => str2bool_i("$ssl"),
+    db_ssl         => $mysql_ssl,
     db_ssl_ca      => $mysql_ca,
     user_password  => $glance_user_password,
     db_password    => $glance_db_password,
@@ -306,14 +378,22 @@ class quickstack::controller_common (
     amqp_username  => $amqp_username,
     amqp_password  => $amqp_password,
     amqp_provider  => $amqp_provider,
-    rabbit_use_ssl => $ssl,
+    rabbit_use_ssl => $amqp_ssl,
+    cert_file      => $glance_cert,
+    key_file       => $glance_key,
+    ca_file        => $root_ca_cert,
+    auth_host      => $controller_pub_host,
+    auth_protocol  => $auth_protocol,
+    auth_uri       => $keystone_pub_url,
+    identity_uri   => $keystone_admin_url,
+    keystone_host  => $controller_pub_host,
   }
 
   # Configure Nova
   class { '::nova':
     database_connection => $nova_sql_connection,
     image_service       => 'nova.image.glance.GlanceImageService',
-    glance_api_servers  => "http://${controller_priv_host}:9292/v1",
+    glance_api_servers  => "${glance_priv_url}/v1",
     rpc_backend         => amqp_backend('nova', $amqp_provider),
     qpid_hostname       => $amqp_host,
     qpid_username       => $amqp_username,
@@ -322,15 +402,21 @@ class quickstack::controller_common (
     rabbit_userid       => $amqp_username,
     rabbit_password     => $amqp_password,
     rabbit_port         => $amqp_port,
-    rabbit_use_ssl      => $ssl,
+    rabbit_use_ssl      => $amqp_ssl,
     verbose             => $verbose,
     qpid_protocol       => $qpid_protocol,
     qpid_port           => $amqp_port,
     require             => Class['quickstack::db::mysql', 'quickstack::amqp::server'],
+    controller_pub_host => $controller_pub_host,
+    use_ssl             => $use_ssl_endpoints,
+    enabled_ssl_apis    => ['osapi_compute'],
+    ca_file             => $root_ca_cert,
+    key_file            => $nova_key,
+    cert_file           => $nova_cert,
   }
 
   nova_config {
-    'DEFAULT/default_floating_pool':   value => $nova_default_floating_pool;
+    'DEFAULT/default_floating_pool': value => $nova_default_floating_pool;
   }
 
   if str2bool_i("$neutron") {
@@ -338,6 +424,9 @@ class quickstack::controller_common (
       enabled           => true,
       admin_password    => $nova_user_password,
       auth_host         => $controller_priv_host,
+      auth_protocol     => $auth_protocol,
+      auth_uri          => $keystone_pub_url,
+      identity_uri      => $keystone_admin_url,
       neutron_metadata_proxy_shared_secret => $neutron_metadata_proxy_secret,
     }
   } else {
@@ -345,6 +434,9 @@ class quickstack::controller_common (
       enabled           => true,
       admin_password    => $nova_user_password,
       auth_host         => $controller_priv_host,
+      auth_protocol     => $auth_protocol,
+      auth_uri          => $keystone_pub_url,
+      identity_uri      => $keystone_admin_url,
     }
   }
 
@@ -369,7 +461,7 @@ class quickstack::controller_common (
 #    amqp_port                   => $amqp_port,
 #    amqp_username               => $amqp_username,
 #    amqp_password               => $amqp_password,
-#    rabbit_use_ssl              => $ssl,
+#    rabbit_use_ssl              => $amqp_ssl,
 #    verbose                     => $verbose,
 #  }
 
@@ -387,18 +479,26 @@ class quickstack::controller_common (
   class { 'quickstack::cinder':
     user_password  => $cinder_user_password,
     db_host        => $mysql_host,
-    db_ssl         => $ssl,
+    db_ssl         => $mysql_ssl,
     db_ssl_ca      => $mysql_ca,
     db_password    => $cinder_db_password,
     glance_host    => $controller_priv_host,
+    keystone_host  => $controller_priv_host,
     rpc_backend    => amqp_backend('cinder', $amqp_provider),
     amqp_host      => $amqp_host,
     amqp_port      => $amqp_port,
     amqp_username  => $amqp_username,
     amqp_password  => $amqp_password,
     qpid_protocol  => $qpid_protocol,
-    rabbit_use_ssl => $ssl,
+    rabbit_use_ssl => $amqp_ssl,
     verbose        => $verbose,
+    auth_uri       => $keystone_pub_url,
+    identity_uri   => $keystone_admin_url,
+    use_ssl        => $use_ssl_endpoints,
+    cert_file      => $cinder_cert,
+    key_file       => $cinder_key,
+    ca_file        => $root_ca_cert,
+    nova_pub_url   => $nova_pub_url,
   }
 
   # preserve original behavior - fall back to iscsi
@@ -503,7 +603,7 @@ class quickstack::controller_common (
       os_username            => 'admin',
       os_tenant_name         => 'admin',
       os_password            => $admin_password,
-      os_auth_url            => "http://${controller_admin_host}:35357/v2.0/",
+      os_auth_url            => "${auth_protocol}://${controller_admin_host}:35357/v2.0/",
       cinder_api_host        => $controller_admin_host,
     }
   }
@@ -551,7 +651,7 @@ class quickstack::controller_common (
     #keystone_host         => $controller_priv_host,
     keystone_url          => "$keystone_pub_url/v2.0",
     fqdn                  => ["$controller_pub_host", "$::fqdn", "$::hostname", 'localhost', '*'],
-    listen_ssl            => str2bool_i("$ssl"),
+    listen_ssl            => str2bool_i("$horizon_ssl"),
     horizon_cert          => $horizon_cert,
     horizon_key           => $horizon_key,
     horizon_ca            => $horizon_ca,
@@ -573,10 +673,20 @@ class quickstack::controller_common (
   }
 
   if $ssl {
-    firewall { '002 ssl controller incoming':
-      proto    => 'tcp',
-      dport    => ['443', '5671',],
-      action   => 'accept',
+    if str2bool_i("$horizon_ssl") {
+      firewall { '002 horizon incoming':
+        proto  => 'tcp',
+        dport  => ['443',],
+        action => 'accept',
+      }
+    }
+
+    if str2bool_i("$amqp_ssl") {
+      firewall { '003 amqp incoming':
+        proto    => 'tcp',
+        dport    => ['5671',],
+        action   => 'accept',
+      }
     }
   }
 
@@ -599,6 +709,7 @@ class quickstack::controller_common (
     class { 'quickstack::admin_client':
       admin_password        => $admin_password,
       controller_admin_host => $real_admin_host,
+      auth_protocol         => $auth_protocol,
     }
   }
 
