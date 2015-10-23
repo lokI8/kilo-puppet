@@ -119,9 +119,9 @@ class DiskUsageMetrics < Sensu::Plugin::Metric::CLI::Graphite
         end
         # Fix subsequent slashes
         mnt = mnt.gsub '/', delim
-        print [mnt, 'used_percentage'].join('.'), ' ', used_p.gsub('%', '') ,'%', "\n"
-        print [mnt, 'used'].join('.'), ' ', used.gsub(config[:block_size], ''),'M', "\n"
-        print [mnt, 'avail'].join('.'), ' ', avail.gsub(config[:block_size], ''), 'M', "\n"
+        output [config[:scheme], 'disk_usage', mnt, 'used'].join('.'), used.gsub(config[:block_size], '')
+        output [config[:scheme], 'disk_usage', mnt, 'avail'].join('.'), avail.gsub(config[:block_size], '')
+        output [config[:scheme], 'disk_usage', mnt, 'used_percentage'].join('.'), used_p.gsub('%', '')
       end
     end
     ok

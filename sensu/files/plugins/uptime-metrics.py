@@ -20,7 +20,6 @@ import logging.handlers
 import optparse
 import sys
 import time
-import datetime
 
 def set_syslog():
     try:
@@ -53,11 +52,10 @@ def uptime(logger):
     return up_and_idle_seconds
 
 def print_for_graphite(scheme, metrics, logger):
-    now =datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+    now = time.time()
     try:
         for metric in metrics:
-            #print "%s.%s %d minutes %s" % (scheme, metric, metrics[metric]/60, now)
-            print "%s %d minutes %s" % (metric, metrics[metric]/60, now)
+            print "%s.%s %d %d" % (scheme, metric, metrics[metric], now)
     except Exception as e:
         logger.critical(e)
         sys.exit(1)

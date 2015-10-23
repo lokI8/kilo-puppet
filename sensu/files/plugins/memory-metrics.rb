@@ -40,9 +40,8 @@ class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
 
     mem = metrics_hash
 
-    print "usedPercentage ", 100 * mem['used'] / mem['total'],"%\n"
     mem.each do |k, v|
-      print "#{k}"," ", format(k,v), "\n" 
+      output "#{config[:scheme]}.#{k}", v
     end
 
     ok
@@ -51,13 +50,13 @@ class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
   def metrics_hash
     mem = {}
     meminfo_output.each_line do |line|
-      mem['total']     = line.split(/\s+/)[1].to_i / 1024 if line.match(/^MemTotal/)
-      mem['free']      = line.split(/\s+/)[1].to_i / 1024 if line.match(/^MemFree/)
-      mem['buffers']   = line.split(/\s+/)[1].to_i / 1024 if line.match(/^Buffers/)
-      mem['cached']    = line.split(/\s+/)[1].to_i / 1024 if line.match(/^Cached/)
-      mem['swapTotal'] = line.split(/\s+/)[1].to_i / 1024 if line.match(/^SwapTotal/)
-      mem['swapFree']  = line.split(/\s+/)[1].to_i / 1024 if line.match(/^SwapFree/)
-      mem['dirty']     = line.split(/\s+/)[1].to_i / 1024 if line.match(/^Dirty/)
+      mem['total']     = line.split(/\s+/)[1].to_i * 1024 if line.match(/^MemTotal/)
+      mem['free']      = line.split(/\s+/)[1].to_i * 1024 if line.match(/^MemFree/)
+      mem['buffers']   = line.split(/\s+/)[1].to_i * 1024 if line.match(/^Buffers/)
+      mem['cached']    = line.split(/\s+/)[1].to_i * 1024 if line.match(/^Cached/)
+      mem['swapTotal'] = line.split(/\s+/)[1].to_i * 1024 if line.match(/^SwapTotal/)
+      mem['swapFree']  = line.split(/\s+/)[1].to_i * 1024 if line.match(/^SwapFree/)
+      mem['dirty']     = line.split(/\s+/)[1].to_i * 1024 if line.match(/^Dirty/)
     end
 
     mem['swapUsed'] = mem['swapTotal'] - mem['swapFree']
@@ -71,13 +70,5 @@ class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
 
   def meminfo_output
     File.open('/proc/meminfo', 'r')
-  end
-
-  def format(key, value)
-   if  key == 'swapUsedPercentage' or key == 'usedPercentage'
-     "#{value}%"
-   else
-     "#{value}M"
-   end
   end
 end
