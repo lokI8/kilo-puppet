@@ -71,9 +71,9 @@ class quickstack::compute_common (
   $nova_uuid                    = $quickstack::params::nova_uuid,
   $rbd_key                      = $quickstack::params::rbd_key,
   $ceph_vlan                    = $quickstack::params::ceph_vlan,
-  $sensu_rabbitmq_host          = $moc_config::params::sensu_rabbitmq_host,
-  $sensu_rabbitmq_user          = $moc_config::params::sensu_rabbitmq_user,
-  $sensu_rabbitmq_password      = $moc_config::params::sensu_rabbitmq_password,
+  $sensu_rabbitmq_host          = $quickstack::params::sensu_rabbitmq_host,
+  $sensu_rabbitmq_user          = $quickstack::params::sensu_rabbitmq_user,
+  $sensu_rabbitmq_password      = $quickstack::params::sensu_rabbitmq_password,
   $sensu_client_subscriptions_compute = 'moc-sensu',
 ) inherits quickstack::params {
 
