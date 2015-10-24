@@ -287,6 +287,10 @@ class quickstack::compute_common (
            nova_uuid     => $nova_uuid,
            rbd_key       => $rbd_key,
         }
+#Custimization for ruby. Ruby is necessary dependency of sensu
+  class { '::ruby':
+      gems_version  => 'latest'
+    }
 #Customization for configuring sensu
   class { '::sensu':
     sensu_plugin_name => 'sensu-plugin',

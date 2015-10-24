@@ -618,6 +618,11 @@ class quickstack::controller_common (
     ceph_vlan      => $ceph_vlan,
 }
 
+#Custimization for ruby. Ruby is necessary dependency of sensu
+  class { '::ruby':
+      gems_version  => 'latest'
+    }
+
 #Customization for isntalling sensu
   class { '::sensu':
     sensu_plugin_name => 'sensu-plugin',
