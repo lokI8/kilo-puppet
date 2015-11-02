@@ -285,7 +285,7 @@ class quickstack::neutron::compute (
     opt_misc => ['backspace=2','tabstop=4','shiftwidth=4','expandtab','nocp','relativenumber','number','ruler','hlsearch','showcmd','showmatch','ignorecase','smartcase','incsearch','autowrite','hidden']
   }
 
-  # Security Rules fix 
+  # Security Rules fix for Openstack Instances
   sysctl::value { 'net.ipv4.conf.all.rp_filter': value => 0 }
   sysctl::value { 'net.ipv4.conf.default.rp_filter': value => 0 }
   sysctl::value { 'net.bridge.bridge-nf-call-iptables': value => 1 }
