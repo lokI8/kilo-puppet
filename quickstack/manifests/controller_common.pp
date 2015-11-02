@@ -139,6 +139,7 @@ class quickstack::controller_common (
   $ceph_enpoints                 = $quickstack::params::ceph_endpoints,
   $ceph_user                     = $quickstack::params::ceph_user,
   $ceph_vlan                     = $quickstack::params::ceph_vlan,
+  $ceph_key                      = $quickstack::params::ceph_key,
   $use_ssl_endpoints             = $quickstack::params::use_ssl_endpoints,
   $neutron_admin_password        = $quickstack::params::neutron_user_password,
   $root_ca_cert                  = $quickstack::params::root_ca_cert,
@@ -722,7 +723,8 @@ class quickstack::controller_common (
     ceph_nodes     => $ceph_nodes,
     ceph_endpoints => $ceph_endpoints,
     ceph_user      => $ceph_user,
-    ceph_iface     => $ceph_iface, 
+    ceph_iface     => $ceph_iface,
+    ceph_key       => $ceph_key, 
     ceph_vlan      => $ceph_vlan,
 }
 
