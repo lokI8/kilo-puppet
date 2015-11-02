@@ -1,6 +1,6 @@
 # installs ceph from template in modules/moc_openstack/templates
 # This is common for both controller and compute
-class moc_openstack::install_ceph($ceph_nodes, $ceph_endpoints, $ceph_user, $ceph_vlan, $ceph_iface) {
+class moc_openstack::install_ceph($ceph_nodes, $ceph_endpoints, $ceph_user, $ceph_vlan, $ceph_key, $ceph_iface) {
   if $::osfamily == 'RedHat' {
     file { "/etc/ceph/":
       ensure => directory,
@@ -13,14 +13,14 @@ class moc_openstack::install_ceph($ceph_nodes, $ceph_endpoints, $ceph_user, $cep
       owner => root,
       group => root,
       mode => 755,
-      content => template('moc_openstack/ceph.erb')
+      content => template('moc_openstack/ceph.conf.erb')
     } ->
     file { "/etc/ceph/client.${ceph_user}.key":
        ensure => present,
        owner => root,
        group => root,
        mode => 755,
-       source => 'puppet:///modules/moc_openstack/client.production-openstack.key',
+       content => template("moc_openstack/client.${ceph_user}.key.erb"),
     } -> 
     file { "/tmp/gen_ceph_intf_file.sh":
        ensure => present,
