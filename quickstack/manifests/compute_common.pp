@@ -82,6 +82,7 @@ class quickstack::compute_common (
   $ceph_user                    = $quickstack::params::ceph_user,
   $nova_uuid                    = $quickstack::params::nova_uuid,
   $rbd_key                      = $quickstack::params::rbd_key,
+  $ceph_iface                   = $quickstack::params::ceph_iface,
   $ceph_vlan                    = $quickstack::params::ceph_vlan,
 
 ) inherits quickstack::params {
@@ -343,11 +344,17 @@ class quickstack::compute_common (
            ceph_nodes     => $ceph_nodes,
            ceph_endpoints => $ceph_endpoints,
            ceph_user      => $ceph_user,
-	   ceph_vlan      => $ceph_vlan,
+	         ceph_vlan      => $ceph_vlan,
+           ceph_iface     => $ceph_iface,
        }   
 #Customization for configuring nova to talk to ceph
   class { 'moc_openstack::configure_nova_ceph':
            nova_uuid     => $nova_uuid,
            rbd_key       => $rbd_key,
         }
+
+  class { 'moc_openstack::firewall':
+           interface => $ceph_iface,
+        }
+
 }

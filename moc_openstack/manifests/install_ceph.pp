@@ -1,6 +1,6 @@
 # installs ceph from template in modules/moc_openstack/templates
 # This is common for both controller and compute
-class moc_openstack::install_ceph($ceph_nodes, $ceph_endpoints, $ceph_user, $ceph_vlan) {
+class moc_openstack::install_ceph($ceph_nodes, $ceph_endpoints, $ceph_user, $ceph_vlan, $ceph_iface) {
   if $::osfamily == 'RedHat' {
     file { "/etc/ceph/":
       ensure => directory,
@@ -31,8 +31,8 @@ class moc_openstack::install_ceph($ceph_nodes, $ceph_endpoints, $ceph_user, $cep
     } ->
     exec{"Creating ceph vlan interface":
      require => File["/tmp/gen_ceph_intf_file.sh"],
-     command => "/bin/bash /tmp/gen_ceph_intf_file.sh;ifup enp130s0f0.250;",
-     onlyif => "/usr/bin/test ! -f /etc/sysconfig/network-scripts/ifcfg-enp130s0f0.250",
+     command => "/bin/bash /tmp/gen_ceph_intf_file.sh;ifup ${ceph_iface}.${ceph_vlan};",
+     onlyif => "/usr/bin/test ! -f /etc/sysconfig/network-scripts/ifcfg-${ceph_iface}.${ceph_vlan}",
     }
 } else {
     fail("The install_missing_package workaround is only supported on RedHat systems!")
