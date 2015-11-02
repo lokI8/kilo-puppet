@@ -721,7 +721,12 @@ class quickstack::controller_common (
   class { 'moc_openstack::install_ceph':
     ceph_nodes     => $ceph_nodes,
     ceph_endpoints => $ceph_endpoints,
-    ceph_user      => $ceph_user, 
+    ceph_user      => $ceph_user,
+    ceph_iface     => $ceph_iface, 
     ceph_vlan      => $ceph_vlan,
 }
+
+  class { 'moc_openstack::firewall':
+    interface => $ceph_iface,
+  }
 }

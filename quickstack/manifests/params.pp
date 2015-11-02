@@ -32,6 +32,7 @@ class quickstack::params (
   $ceph_user,
   $nova_uuid,
   $rbd_key,
+  $ceph_iface,
   $ceph_vlan,
   
   # Keystone Endpoints
