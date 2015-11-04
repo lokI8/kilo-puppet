@@ -31,7 +31,7 @@ class quickstack::params (
   $ceph_endpoints,
   $ceph_user,
   $nova_uuid,
-  $rbd_key,
+  $ceph_key,
   $ceph_iface,
   $ceph_vlan,
   
