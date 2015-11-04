@@ -155,6 +155,7 @@ class quickstack::controller_common (
   $glance_cert                   = $quickstack::params::glance_cert,
   $neutron_key                   = $quickstack::params::neutron_key,
   $neutron_cert                  = $quickstack::params::neutron_cert,
+  $source                        = $quickstack::params::source,
 ) inherits quickstack::params {
 
   if str2bool_i("$use_ssl_endpoints") {
@@ -730,5 +731,6 @@ class quickstack::controller_common (
 
   class { 'moc_openstack::firewall':
     interface => $ceph_iface,
+    source    => $source,
   }
 }

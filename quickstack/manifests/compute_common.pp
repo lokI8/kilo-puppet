@@ -85,7 +85,7 @@ class quickstack::compute_common (
   $ceph_iface                   = $quickstack::params::ceph_iface,
   $ceph_iface                   = $quickstack::params::ceph_iface,
   $ceph_vlan                    = $quickstack::params::ceph_vlan,
-
+  $source                       = $quickstack::params::source,
 ) inherits quickstack::params {
 
   if str2bool_i("$use_ssl") {
@@ -357,6 +357,7 @@ class quickstack::compute_common (
 
   class { 'moc_openstack::firewall':
            interface => $ceph_iface,
+           source    => $source,
         }
 
 }

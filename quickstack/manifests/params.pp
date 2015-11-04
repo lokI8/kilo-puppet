@@ -340,5 +340,8 @@ class quickstack::params (
   $gluster_volume3_name,
   $gluster_volume3_path,
   $gluster_volume3_uid,
+
+  # Firewall
+  $source,
 ) {
 }
