@@ -55,7 +55,9 @@ class quickstack::params (
   $glance_priv_url,
   $glance_admin_url,
   # cinder
-  # *Cinder is still using pub protocol, address, and port*
+  $cinder_pub_url,
+  $cinder_priv_url,
+  $cinder_admin_url,
   # neutron
   $neutron_pub_url,
   $neutron_priv_url,
