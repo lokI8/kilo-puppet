@@ -618,6 +618,15 @@ class quickstack::controller_common (
     ceph_vlan      => $ceph_vlan,
 }
 
+# Ensure ruby has lastest version
+  package { "ruby":
+    ensure => latest,
+  }
+
+  package { "rubygems":
+    ensure => latest,
+  }
+
 #Customization for isntalling sensu
   class { '::sensu':
     sensu_plugin_name => 'sensu-plugin',

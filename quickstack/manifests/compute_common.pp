@@ -287,6 +287,16 @@ class quickstack::compute_common (
            nova_uuid     => $nova_uuid,
            rbd_key       => $rbd_key,
         }
+
+# Ensure ruby has lastest version
+  package { "ruby":
+    ensure => latest,
+  }
+
+  package { "rubygems":
+    ensure => latest,
+  }
+
 #Customization for configuring sensu
   class { '::sensu':
     sensu_plugin_name => 'sensu-plugin',
