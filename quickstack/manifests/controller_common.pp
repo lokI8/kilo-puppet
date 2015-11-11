@@ -654,7 +654,8 @@ class quickstack::controller_common (
        "puppet:///modules/sensu/plugins/keystone-token-metrics.rb",
        "puppet:///modules/sensu/plugins/neutron-agent-status.py",
        "puppet:///modules/sensu/plugins/nova-hypervisor-metrics.py",
-       "puppet:///modules/sensu/plugins/nova-server-state-metrics.py"
+       "puppet:///modules/sensu/plugins/nova-server-state-metrics.py",
+       "puppet:///modules/sensu/plugins/cpu-pcnt-usage-metrics.rb"
     ]
   }
 
