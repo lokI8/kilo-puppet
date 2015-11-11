@@ -345,5 +345,9 @@ class quickstack::params (
 
   # Firewall
   $source,
+
+  #NTP
+  $ntp_public_servers,
+  $ntp_local_servers,
 ) {
 }

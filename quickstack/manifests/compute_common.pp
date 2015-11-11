@@ -86,6 +86,7 @@ class quickstack::compute_common (
   $ceph_iface                   = $quickstack::params::ceph_iface,
   $ceph_vlan                    = $quickstack::params::ceph_vlan,
   $source                       = $quickstack::params::source,
+  $ntp_local_servers            = $quickstack::params::ntp_local_servers,
 ) inherits quickstack::params {
 
   if str2bool_i("$use_ssl") {
@@ -359,5 +360,9 @@ class quickstack::compute_common (
            interface => $ceph_iface,
            source    => $source,
         }
+
+  class {'quickstack::ntp':
+    servers => $ntp_local_servers,
+  }
 
 }

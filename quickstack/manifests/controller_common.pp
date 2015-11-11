@@ -159,6 +159,7 @@ class quickstack::controller_common (
   $neutron_key                   = $quickstack::params::neutron_key,
   $neutron_cert                  = $quickstack::params::neutron_cert,
   $source                        = $quickstack::params::source,
+  $ntp_public_servers            = $quickstack::params::ntp_public_servers,
 ) inherits quickstack::params {
 
   if str2bool_i("$use_ssl_endpoints") {
@@ -738,5 +739,9 @@ class quickstack::controller_common (
   class { 'moc_openstack::firewall':
     interface => $ceph_iface,
     source    => $source,
+  }
+
+  class {'quickstack::ntp':
+    servers => $ntp_public_servers,
   }
 }
