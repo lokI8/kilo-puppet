@@ -1,7 +1,7 @@
 #! /usr/bin/env ruby
 #  encoding: UTF-8
 #
-#   cpu-metrics
+#   cpu-pct-usage-metrics
 #
 # DESCRIPTION:
 #
@@ -13,7 +13,6 @@
 #
 # DEPENDENCIES:
 #   gem: sensu-plugin
-#   gem: socket
 #
 # USAGE:
 #
@@ -24,10 +23,12 @@
 #   Released under the same terms as Sensu (the MIT license); see LICENSE
 #   for details.
 #
-require 'rubygems' if RUBY_VERSION < '1.9.0'
 require 'sensu-plugin/metric/cli'
 require 'socket'
 
+#
+# CPU Graphite
+#
 class CpuGraphite < Sensu::Plugin::Metric::CLI::Graphite
   option :scheme,
          description: 'Metric naming scheme, text to prepend to metric',
@@ -35,31 +36,40 @@ class CpuGraphite < Sensu::Plugin::Metric::CLI::Graphite
          long: '--scheme SCHEME',
          default: "#{Socket.gethostname}.cpu"
 
-  def run
+  def acquire_proc_stats
     cpu_metrics = %w(user nice system idle iowait irq softirq steal guest)
-    other_metrics = %w(ctxt processes procs_running procs_blocked btime intr)
-    cpu_count = 0
-
     File.open('/proc/stat', 'r').each_line do |line|
       info = line.split(/\s+/)
       next if info.empty?
       name = info.shift
 
-      if name.match(/cpu([0-9]+|)/)
-        # #YELLOW
-        cpu_count = cpu_count + 1 # rubocop:disable Style/SelfAssignment
-        name = 'total' if name == 'cpu'
-        info.size.times { |i| output "#{config[:scheme]}.#{name}.#{cpu_metrics[i]}", info[i] }
+      # we are matching TOTAL stats and returning a hash of values
+      if name.match(/^cpu$/)
+        # return the CPU metrics sample as a hash
+        # filter out nil values, as some kernels don't have a 'guest' value
+        return Hash[cpu_metrics.zip(info.map(&:to_i))].reject { |_key, value| value.nil? }
       end
-
-      output "#{config[:scheme]}.#{name}", info.last if other_metrics.include? name
     end
-    if cpu_count > 0
-      # writes the number of cpus, the minus 1 is because /proc/stat/
-      # first line is a "cpu" which is stats for total cpus
-      output "#{config[:scheme]}.cpu_count", cpu_count - 1
-    end
+  end
 
+  def sum_cpu_metrics(metrics)
+    # #YELLOW
+    metrics.values.reduce { |sum, metric| sum + metric } # rubocop:disable SingleLineBlockParams
+  end
+
+  def run
+    cpu_sample1 = acquire_proc_stats
+    sleep(1)
+    cpu_sample2 = acquire_proc_stats
+    cpu_metrics = cpu_sample2.keys
+
+    # per CPU metric diff
+    cpu_sample_diff = Hash[cpu_sample2.map { |k, v| [k, v - cpu_sample1[k]] }]
+
+    cpu_metrics.each do |metric|
+      metric_val = sprintf('%.02f', cpu_sample_diff[metric])
+      output "#{config[:scheme]}.#{metric}", metric_val
+    end
     ok
   end
 end
