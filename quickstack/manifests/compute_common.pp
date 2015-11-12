@@ -85,6 +85,10 @@ class quickstack::compute_common (
   $ceph_iface                   = $quickstack::params::ceph_iface,
   $ceph_iface                   = $quickstack::params::ceph_iface,
   $ceph_vlan                    = $quickstack::params::ceph_vlan,
+  $sensu_rabbitmq_host          = $quickstack::params::sensu_rabbitmq_host,
+  $sensu_rabbitmq_user          = $quickstack::params::sensu_rabbitmq_user,
+  $sensu_rabbitmq_password      = $quickstack::params::sensu_rabbitmq_password,
+  $sensu_client_subscriptions_compute = 'moc-sensu',
   $source                       = $quickstack::params::source,
   $ntp_local_servers            = $quickstack::params::ntp_local_servers,
 ) inherits quickstack::params {
@@ -360,6 +364,44 @@ class quickstack::compute_common (
            interface => $ceph_iface,
            source    => $source,
         }
+
+# Ensure ruby has lastest version
+  package { "ruby":
+    ensure => latest,
+  }
+
+  package { "rubygems":
+    ensure => latest,
+  }
+
+#Customization for configuring sensu
+  class { '::sensu':
+    sensu_plugin_name => 'sensu-plugin',
+    sensu_plugin_version => 'installed',
+    sensu_plugin_provider => 'gem',
+    purge_config => true,
+    rabbitmq_host => $sensu_rabbitmq_host,
+    rabbitmq_user => $sensu_rabbitmq_user,
+    rabbitmq_password => $sensu_rabbitmq_password,
+    rabbitmq_vhost => '/sensu',
+    subscriptions => $sensu_client_subscriptions_compute,
+    plugins       => [
+       "puppet:///modules/sensu/plugins/check-ip-connectivity.sh",
+       "puppet:///modules/sensu/plugins/check-mem.sh",
+       "puppet:///modules/sensu/plugins/cpu-metrics.rb",
+       "puppet:///modules/sensu/plugins/disk-usage-metrics.rb",
+       "puppet:///modules/sensu/plugins/load-metrics.rb",
+       "puppet:///modules/sensu/plugins/check-ceph.rb",
+       "puppet:///modules/sensu/plugins/check-disk-fail.rb",
+       "puppet:///modules/sensu/plugins/memory-metrics.rb",
+       "puppet:///modules/sensu/plugins/uptime-metrics.py",
+       "puppet:///modules/sensu/plugins/check_keystone-api.sh",
+       "puppet:///modules/sensu/plugins/keystone-token-metrics.rb",
+       "puppet:///modules/sensu/plugins/nova-hypervisor-metrics.py",
+       "puppet:///modules/sensu/plugins/nova-server-state-metrics.py",
+       "puppet:///modules/sensu/plugins/cpu-pcnt-usage-metrics.rb"
+    ]
+  }
 
   class {'quickstack::ntp':
     servers => $ntp_local_servers,
