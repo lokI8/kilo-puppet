@@ -41,6 +41,15 @@ class quickstack::glance (
   $amqp_provider            = 'rabbitmq',
   $rabbit_use_ssl           = false,
   $rabbit_hosts             = undef,
+  $cert_file                = '',
+  $key_file                 = '',
+  $ca_file                  = '',
+  $auth_host                = '127.0.0.1',
+  $identity_uri             = 'http://localhost:35357/v2.0',
+  $auth_uri                 = 'http://localhost:5000/v2.0',
+  $auth_port                = '35357',
+  $auth_admin_prefix        = false,
+  $auth_protocol            = 'http',
 ) {
 
   # Configure the db string
@@ -50,7 +59,7 @@ class quickstack::glance (
     $sql_connection = "mysql://${db_user}:${db_password}@${db_host}/${db_name}"
   }
 
-  $_auth_url = "http://${keystone_host}:5000/v2.0"
+  $_auth_url = "${auth_protocol}://${keystone_host}:5000/v2.0"
 
   if ($backend == 'file') {
     $_backend = 'filesystem'
@@ -92,6 +101,12 @@ class quickstack::glance (
     enabled               => $enabled,
     manage_service        => $manage_service,
     show_image_direct_url => $show_image_direct_url,
+    cert_file             => $cert_file,
+    key_file              => $key_file,
+    ca_file               => $ca_file,
+    auth_uri              => $auth_uri,
+    identity_uri          => $identity_uri,
+    auth_protocol         => $auth_protocol,
   }
   contain glance::api
 
@@ -112,6 +127,10 @@ class quickstack::glance (
     log_facility          => $log_facility,
     enabled               => $enabled,
     manage_service        => $manage_service,
+    auth_protocol         => $auth_protocol,
+    auth_uri              => $auth_uri,
+    identity_uri          => $identity_uri,
+    ca_file               => $ca_file,
   }
   contain glance::registry
 
@@ -171,4 +190,6 @@ class quickstack::glance (
     fail("Unsupported backend ${backend}")
   }
   class {'::quickstack::firewall::glance':}
+
+  class {'moc_openstack::ssl::temp_glance_fix':}
 }

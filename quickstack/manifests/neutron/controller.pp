@@ -159,6 +159,9 @@ class quickstack::neutron::controller (
   $verbose                       = $quickstack::params::verbose,
   $ssl                           = $quickstack::params::ssl,
   $freeipa                       = $quickstack::params::freeipa,
+  $mysql_ssl                     = $quickstack::params::mysql_ssl,
+  $amqp_ssl                      = $quickstack::params::amqp_ssl,
+  $horizon_ssl                   = $quickstack::params::horizon_ssl,
   $mysql_ca                      = $quickstack::params::mysql_ca,
   $mysql_cert                    = $quickstack::params::mysql_cert,
   $mysql_key                     = $quickstack::params::mysql_key,
@@ -171,12 +174,35 @@ class quickstack::neutron::controller (
   $amqp_nssdb_password           = $quickstack::params::amqp_nssdb_password,
   $network_device_mtu            = $quickstack::params::network_device_mtu,
   $veth_mtu                      = $quickstack::params::veth_mtu,
+  $use_ssl                       = $quickstack::params::use_ssl_endpoints,
+  $cert_file                     = $quickstack::params::neutron_cert,
+  $key_file                      = $quickstack::params::neutron_key,
+  $ca_file                       = $quickstack::params::root_ca_cert,
+  $neutron_pub_url               = $quickstack::params::neutron_pub_url,
+  $keystone_admin_url            = $quickstack::params::keystone_admin_url,
+  $ovs_l2_population             = 'true',
 ) inherits quickstack::params {
 
+  if str2bool_i("$use_ssl") {
+    $auth_protocol = 'https'
+  } else {
+    $auth_protocol = 'http'
+  }
+
   if str2bool_i("$ssl") {
-    $qpid_protocol = 'ssl'
-    $amqp_port = '5671'
-    $sql_connection = "mysql://neutron:${neutron_db_password}@${mysql_host}/neutron?ssl_ca=${mysql_ca}"
+    if str2bool_i("$amqp_ssl") {
+      $qpid_protocol = 'ssl'
+      $amqp_port = '5671'
+    } else {
+      $qpid_protocol = 'tcp'
+      $amqp_port = '5672'
+    }
+
+    if str2bool_i("$mysql_ssl"){
+      $sql_connection = "mysql://neutron:${neutron_db_password}@${mysql_host}/neutron?ssl_ca=${mysql_ca}"
+    } else {
+      $sql_connection = "mysql://neutron:${neutron_db_password}@${mysql_host}/neutron"
+    }
   } else {
     $qpid_protocol = 'tcp'
     $amqp_port = '5672'
@@ -285,6 +311,9 @@ class quickstack::neutron::controller (
     swift_storage_device           => $swift_storage_device,
     verbose                        => $verbose,
     ssl                            => $ssl,
+    mysql_ssl                      => $mysql_ssl,
+    amqp_ssl                       => $amqp_ssl,
+    horizon_ssl                    => $horizon_ssl,
     freeipa                        => $freeipa,
     mysql_ca                       => $mysql_ca,
     mysql_cert                     => $mysql_cert,
@@ -312,21 +341,27 @@ class quickstack::neutron::controller (
     rabbit_port           => $amqp_port,
     rabbit_user           => $amqp_username,
     rabbit_password       => $amqp_password,
-    rabbit_use_ssl        => $ssl,
+    rabbit_use_ssl        => $amqp_ssl,
     core_plugin           => $neutron_core_plugin,
     network_device_mtu    => $network_device_mtu,
+    use_ssl               => $use_ssl,
+    cert_file             => $cert_file,
+    key_file              => $key_file,
+    ca_file               => $ca_file,
   }
   ->
   class { '::nova::network::neutron':
     neutron_admin_password => $neutron_user_password,
     security_group_api     => $security_group_api,
+    neutron_url            => $neutron_pub_url,
+    neutron_admin_auth_url => "${keystone_admin_url}/v2.0",
   }
   ->
   class { '::neutron::server::notifications':
     notify_nova_on_port_status_changes => true,
     notify_nova_on_port_data_changes   => true,
-    nova_url                           => "http://${controller_priv_host}:8774/v2",
-    nova_admin_auth_url                => "http://${controller_priv_host}:35357/v2.0",
+    nova_url                           => "${auth_protocol}://${controller_priv_host}:8774/v2",
+    nova_admin_auth_url                => "${auth_protocol}://${controller_priv_host}:35357/v2.0",
     nova_admin_username                => "nova",
     nova_admin_password                => "${nova_user_password}",
   }
@@ -344,10 +379,12 @@ class quickstack::neutron::controller (
   }
 
   class { '::neutron::server':
-    auth_host        => $::ipaddress,
-    auth_password    => $neutron_user_password,
-    database_connection       => $sql_connection,
-    #sql_connection   => false,
+    auth_host           => $controller_priv_host,
+    auth_protocol       => $auth_protocol,
+    auth_uri            => $keystone_pub_url,
+    auth_password       => $neutron_user_password,
+    database_connection => $sql_connection,
+    #sql_connection     => false,
   }
 
   if $neutron_core_plugin == 'neutron.plugins.ml2.plugin.Ml2Plugin' {
@@ -408,7 +445,6 @@ class quickstack::neutron::controller (
       tenant_network_type          => $tenant_network_type,
     }
   }
-  neutron_plugin_ovs { 'AGENT/l2_population': value => "$ovs_l2_population"; }
 
   $local_ip = find_ip("$ovs_tunnel_network","$ovs_tunnel_iface","")
 
@@ -419,6 +455,7 @@ class quickstack::neutron::controller (
     enable_tunneling => str2bool_i("$enable_tunneling"),
     tunnel_types     => $ovs_tunnel_types,
     vxlan_udp_port   => $ovs_vxlan_udp_port,
+    l2_population    => $ovs_l2_population,
   }
 
   class { '::neutron::agents::dhcp': }
@@ -430,7 +467,7 @@ class quickstack::neutron::controller (
   class { 'neutron::agents::metadata':
     auth_password => $neutron_user_password,
     shared_secret => $neutron_metadata_proxy_secret,
-    auth_url      => "http://${controller_priv_host}:5000/v2.0",
+    auth_url      => "${auth_protocol}://${controller_priv_host}:5000/v2.0",
     metadata_ip   => $controller_priv_host,
   }
 
@@ -461,9 +498,9 @@ class quickstack::neutron::controller (
     dport    => ['9696'],
     action   => 'accept',
   }
-  class { '::timezone':
-    timezone => 'America/New_York',
-  }
+  #class { '::timezone':
+  #  timezone => 'America/New_York',
+  #}
 
   class { '::ssh': }
 

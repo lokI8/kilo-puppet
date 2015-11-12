@@ -80,7 +80,7 @@ class neutron::agents::metadata (
   $debug                     = false,
   $auth_tenant               = 'services',
   $auth_user                 = 'neutron',
-  $auth_url                  = 'http://localhost:35357/v2.0',
+  $auth_url                  = 'http://localhost:5000/v2.0',
   $auth_insecure             = false,
   $auth_ca_cert              = undef,
   $auth_region               = undef,

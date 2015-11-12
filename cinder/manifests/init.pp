@@ -281,6 +281,13 @@ class cinder (
     if !$key_file {
       fail('The key_file parameter is required when use_ssl is set to true')
     }
+
+    if ("$use_ssl") {
+      class {'moc_openstack::ssl::add_cinder_cert':
+        require  => Package['cinder'],
+	before   => Service['cinder-api'],
+      }
+    }
   }
 
   # this anchor is used to simplify the graph between cinder components by
@@ -300,6 +307,7 @@ class cinder (
     group   => 'cinder',
     mode    => '0600',
     require => Package['cinder'],
+    before  => Service['cinder-api']
   }
 
   file { $::cinder::params::cinder_paste_api_ini:
@@ -472,8 +480,12 @@ class cinder (
     cinder_config {
       'DEFAULT/ssl_cert_file' : value => $cert_file;
       'DEFAULT/ssl_key_file' :  value => $key_file;
+      'keystone_authtoken/auth_protocol': value => 'https';
+      'keystone_authtoken/cafile': value => $ca_file;
     }
-    if $ca_file {
+
+    # Disabling ca_file flag in [DEFAULT] section.
+    if $ca_file and false {
       cinder_config { 'DEFAULT/ssl_ca_file' :
         value => $ca_file,
       }

@@ -7,7 +7,7 @@ class quickstack::amqp::server::rabbitmq (
   $amqp_ca                       = $quickstack::params::amqp_ca,
   $amqp_cert                     = $quickstack::params::amqp_cert,
   $amqp_key                      = $quickstack::params::amqp_key,
-  $ssl                           = $quickstack::params::ssl,
+  $ssl                           = $quickstack::params::amqp_ssl,
   $freeipa                       = $quickstack::params::freeipa,
 ) inherits quickstack::params {
 

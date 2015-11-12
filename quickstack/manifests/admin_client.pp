@@ -1,6 +1,7 @@
 class quickstack::admin_client(
   $admin_password,
   $controller_admin_host,
+  $auth_protocol          = 'http',
 ) {
 
   define openstack_client_pkgs() {
@@ -25,7 +26,7 @@ class quickstack::admin_client(
   $rcadmin_content = "export OS_USERNAME=admin 
 export OS_TENANT_NAME=admin   
 export OS_PASSWORD=$admin_password
-export OS_AUTH_URL=http://$controller_admin_host:35357/v2.0/
+export OS_AUTH_URL=${auth_protocol}://$controller_admin_host:35357/v2.0/
 export PS1='[\\u@\\h \\W(openstack_admin)]\\$ '
 "
 

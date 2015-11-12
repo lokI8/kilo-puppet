@@ -245,7 +245,6 @@ class quickstack::neutron::all (
     } else {
       $_ovs_l2_population = true
     }
-    neutron_plugin_ovs {'agent/veth_mtu': value => "$veth_mtu"; }
 
     class { '::neutron::agents::ml2::ovs':
       bridge_mappings  => $ovs_bridge_mappings,
@@ -258,6 +257,8 @@ class quickstack::neutron::all (
       tunnel_types     => $ovs_tunnel_types,
       vxlan_udp_port   => $ovs_vxlan_udp_port,
     }
+
+    neutron_plugin_ovs {'agent/veth_mtu': value => "$veth_mtu"; }
   }
 
   class { '::nova::network::neutron':

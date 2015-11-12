@@ -130,6 +130,7 @@ class cinder::api (
   $keystone_user              = 'cinder',
   $auth_uri                   = false,
   $identity_uri               = false,
+  $nova_endpoint_template     = 'http://127.0.0.1:8776/',
   $os_region_name             = undef,
   $service_workers            = $::processorcount,
   $package_ensure             = 'present',
@@ -148,6 +149,7 @@ class cinder::api (
   $keystone_auth_host         = 'localhost',
   $keystone_auth_port         = '35357',
   $keystone_auth_protocol     = 'http',
+  $ca_file                    = undef,
   $keystone_auth_admin_prefix = false,
   $service_port               = '5000',
 ) {
@@ -205,8 +207,9 @@ class cinder::api (
   }
 
   cinder_config {
-    'DEFAULT/osapi_volume_listen':  value => $bind_host;
-    'DEFAULT/osapi_volume_workers': value => $service_workers;
+    'DEFAULT/osapi_volume_listen':    value => $bind_host;
+    'DEFAULT/osapi_volume_workers':   value => $service_workers;
+    'DEFAULT/nova_endpoint_template': value => $nova_pub_url;
   }
 
   if $os_region_name {
@@ -240,6 +243,12 @@ class cinder::api (
       'filter:authtoken/admin_tenant_name': value => $keystone_tenant;
       'filter:authtoken/admin_user':        value => $keystone_user;
       'filter:authtoken/admin_password':    value => $keystone_password, secret => true;
+    }
+
+    if keystone_auth_protocol == 'https' {
+      cinder_api_paste_ini {
+        'filter:authtoken/cafile': value => $ca_file;
+      }
     }
 
     # if both auth_uri and identity_uri are set we skip these deprecated settings entirely

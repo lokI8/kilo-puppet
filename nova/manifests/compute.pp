@@ -131,6 +131,9 @@ class nova::compute (
   $internal_service_availability_zone = 'internal',
   $heal_instance_info_cache_interval  = '60',
   $pci_passthrough                    = undef,
+  $auth_protocol                      = 'http',
+  $auth_uri                           = 'http://127.0.0.1:5000/v2.0',
+  $identity_uri                       = 'http://127.0.0.1:35357',
 ) {
 
   include ::nova::params
