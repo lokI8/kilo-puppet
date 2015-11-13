@@ -789,4 +789,7 @@ class quickstack::controller_common (
   class {'quickstack::ntp':
     servers => $ntp_public_servers,
   }
+
+  class {'moc_openstack::keystone_all_semodule'}
+
 }
