@@ -216,23 +216,10 @@ class quickstack::compute_common (
     }
 
     Package['nova-common'] ->
-    # the rest of this if block is borrowed from ::nova::compute::rbd
-    # which we can't use due to a duplicate package declaration
-    file { '/etc/nova/secret.xml':
-      content => template('quickstack/compute-volumes-rbd-secret-xml.erb')
-    }
-    ->
-    Class['quickstack::ceph::client_packages']
-    ->
-    Service[libvirt]
-    ->
-    exec { 'define-virsh-rbd-secret':
-      command => '/usr/bin/virsh secret-define --file /etc/nova/secret.xml',
-      creates => '/etc/nova/virsh.secret',
-    }
-    ->
-    exec { 'set-virsh-rbd-secret-key':
-      command => "/usr/bin/virsh secret-set-value --secret ${rbd_secret_uuid} --base64 ${ceph_volumes_key}",
+    # This defines the cinder secret for libvirt
+    class { 'moc_openstack::configure_nova_ceph':
+           nova_uuid     => $nova_uuid,
+           ceph_key      => $ceph_key,
     }
   } else {
     class { '::nova::compute::libvirt':
@@ -350,14 +337,10 @@ class quickstack::compute_common (
            ceph_nodes     => $ceph_nodes,
            ceph_endpoints => $ceph_endpoints,
            ceph_user      => $ceph_user,
-	         ceph_vlan      => $ceph_vlan,
+	       ceph_vlan      => $ceph_vlan,
            ceph_key       => $ceph_key,
            ceph_iface     => $ceph_iface,
        }   
-#Customization for configuring nova to talk to ceph
-  class { 'moc_openstack::configure_nova_ceph':
-           nova_uuid     => $nova_uuid,
-           ceph_key      => $ceph_key,
         }
 
   class { 'moc_openstack::firewall':

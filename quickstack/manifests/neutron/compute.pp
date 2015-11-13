@@ -24,7 +24,7 @@ class quickstack::neutron::compute (
   $ceph_extra_conf_lines        = [ ],
   $cinder_backend_gluster       = $quickstack::params::cinder_backend_gluster,
   $cinder_backend_nfs           = 'false',
-  $cinder_backend_rbd           = 'false',
+  $cinder_backend_rbd           = $quickstack::params::cinder_backend_rbd,
   $cinder_catalog_info          = 'volume:cinder:internalURL',
   $glance_backend_rbd           = 'true',
   $glance_host                  = $quickstack::params::controller_pub_host,
