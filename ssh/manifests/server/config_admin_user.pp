@@ -1,6 +1,8 @@
 class ssh::server::config_admin_user (
-  $user     = $quickstack::params::moc_admin_user,
-  $password = $quickstack::params::moc_admin_password,
+  $user            = $quickstack::params::moc_admin_user,
+  $password        = $quickstack::params::moc_admin_password,
+  $hashed_password = $quickstack::params::moc_admin_hashed_password,
+  $authorized_keys = 'authorized_keys',
 ) inherits quickstack::params {
   case $::osfamily {
     redhat: {
@@ -8,7 +10,7 @@ class ssh::server::config_admin_user (
         ensure     => 'present',
         home       => "/home/${user}",
         groups     => 'wheel',
-        password   => $password,
+        password   => $hashed_password,
         managehome => true,
       } ->
       file { "/home/${user}/.ssh":
@@ -23,8 +25,18 @@ class ssh::server::config_admin_user (
         group   => $user,
         mode    => '0600',
         replace => true,
-        source  => "puppet:///modules/${module_name}/authorized_keys",
+        source  => "puppet:///modules/${module_name}/${authorized_keys}",
         require => Class['ssh::server::install']
+      } ->
+      file {"/home/${user}/access.txt":
+        ensure  => present,
+	owner   => $user,
+	group   => $user,
+	mode    => '0400',
+	replace => true,
+      } ->
+      exec {"store-passwd":
+        command => "/bin/echo ${password} > /home/${user}/access.txt",
       }
     }
     default: {
