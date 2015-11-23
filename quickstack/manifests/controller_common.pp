@@ -796,6 +796,8 @@ class quickstack::controller_common (
   }
 
   # Create semodule for keystone-all access to fernet keys
-  class {'moc_openstack::keystone_all_semodule'}
+  class {'moc_openstack::keystone_all_semodule'
+    require => ['moc_openstack::generate_fernet_keys'] 
+  }
 
 }
