@@ -425,7 +425,7 @@ class openstack::keystone (
       }
 
       class { 'ceilometer::keystone::auth':
-        auth_name        => $ceilometer_user
+        auth_name        => $ceilometer_user,
         password         => $ceilometer_user_password,
         public_address   => $ceilometer_public_real,
         public_protocol  => $public_protocol,
