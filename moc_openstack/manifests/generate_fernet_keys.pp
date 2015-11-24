@@ -11,9 +11,10 @@ class moc_openstack::generate_fernet_keys {
 
   # If the directory is empty, runs fernet key generation
   exec { 'generate_fernet_keys':
-    command => "/bin/bash -c 'source /root/keystonerc_admin; /bin/keystone-manage fernet_setup'",
+    command => "/bin/keystone-manage fernet_setup",
     user    => 'keystone',
     group   => 'keystone',
+    require => File['create_fernet_directory'],
     onlyif  => '/bin/ls -A /etc/keystone/fernet-keys'
   }
 }
