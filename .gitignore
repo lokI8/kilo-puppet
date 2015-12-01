@@ -5,3 +5,6 @@
 *.srl
 *.*~
 *.pyc
+
+# ignore directories
+moc_openstack/files/certs

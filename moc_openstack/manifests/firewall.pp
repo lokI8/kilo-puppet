@@ -51,6 +51,21 @@ class moc_openstack::firewall (
 #        action   => 'accept',      
 #      }
 #    }      
+    firewall { '996 drop all incoming ipv6 traffic':
+      chain    => 'INPUT',
+      action   => 'drop',
+      provider => 'ip6tables',
+    }
+    firewall { '997 drop all outgoing ipv6 traffic':
+      chain    => 'OUTPUT',
+      action   => 'drop',
+      provider => 'ip6tables',
+    }
+    firewall { '998 no forwarding of ipv6 traffic':
+      chain    => 'FORWARD',
+      action   => 'drop',
+      provider => 'ip6tables',
+    }
     firewall { '999 drop all':
       require  => Firewall['000 allow openstacknet'],
       chain    => 'INPUT',
