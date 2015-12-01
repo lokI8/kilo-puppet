@@ -332,21 +332,21 @@ class quickstack::compute_common (
     dport  => '5900-5999',
     action => 'accept',
   }
+
 #Customization for intalling ceph and conf files  
-   class { 'moc_openstack::install_ceph':
-           ceph_nodes     => $ceph_nodes,
-           ceph_endpoints => $ceph_endpoints,
-           ceph_user      => $ceph_user,
-	       ceph_vlan      => $ceph_vlan,
-           ceph_key       => $ceph_key,
-           ceph_iface     => $ceph_iface,
-       }   
-        }
+  class { 'moc_openstack::install_ceph':
+    ceph_nodes     => $ceph_nodes,
+    ceph_endpoints => $ceph_endpoints,
+    ceph_user      => $ceph_user,
+    ceph_vlan      => $ceph_vlan,
+    ceph_key       => $ceph_key,
+    ceph_iface     => $ceph_iface,
+  }
 
   class { 'moc_openstack::firewall':
-           interface => $ceph_iface,
-           source    => $source,
-        }
+    interface => $ceph_iface,
+    source    => $source,
+  }
 
 # Ensure ruby has lastest version
   package { "ruby":
@@ -359,16 +359,16 @@ class quickstack::compute_common (
 
 #Customization for configuring sensu
   class { '::sensu':
-    sensu_plugin_name => 'sensu-plugin',
-    sensu_plugin_version => 'installed',
+    sensu_plugin_name     => 'sensu-plugin',
+    sensu_plugin_version  => 'installed',
     sensu_plugin_provider => 'gem',
-    purge_config => true,
-    rabbitmq_host => $sensu_rabbitmq_host,
-    rabbitmq_user => $sensu_rabbitmq_user,
-    rabbitmq_password => $sensu_rabbitmq_password,
-    rabbitmq_vhost => '/sensu',
-    subscriptions => $sensu_client_subscriptions_compute,
-    plugins       => [
+    purge_config          => true,
+    rabbitmq_host         => $sensu_rabbitmq_host,
+    rabbitmq_user         => $sensu_rabbitmq_user,
+    rabbitmq_password     => $sensu_rabbitmq_password,
+    rabbitmq_vhost        => '/sensu',
+    subscriptions         => $sensu_client_subscriptions_compute,
+    plugins               => [
        "puppet:///modules/sensu/plugins/check-ip-connectivity.sh",
        "puppet:///modules/sensu/plugins/check-mem.sh",
        "puppet:///modules/sensu/plugins/cpu-metrics.rb",
