@@ -275,9 +275,10 @@ class quickstack::neutron::compute (
   class {'quickstack::neutron::firewall::vxlan':
     port => $ovs_vxlan_udp_port,
   }
-  #class { '::timezone':
-  #  timezone => 'America/New_York',
-  #}
+
+  class { '::timezone':
+    timezone => 'America/New_York',
+  }
 
   class { '::ssh': }
 
