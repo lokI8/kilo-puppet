@@ -44,7 +44,7 @@ class quickstack::compute_common (
   $cinder_catalog_info          = 'volume:cinder:internalURL',
   $glance_host                  = $quickstack::params::controller_pub_host,
   $glance_backend_rbd           = 'true',
-  $libvirt_images_rbd_pool      = $quickstack::params::libvirt_images_rbd_pool,
+  $libvirt_images_rbd_pool      = $quickstack::params::libvirt_rbd_pool,
   $libvirt_images_rbd_ceph_conf = '/etc/ceph/ceph.conf',
   $libvirt_inject_password      = 'false',
   $libvirt_inject_key           = 'false',
