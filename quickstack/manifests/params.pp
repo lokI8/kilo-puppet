@@ -160,7 +160,7 @@ class quickstack::params (
   $controller_admin_host,
   $controller_admin_url,
   $controller_priv_host,
-  $controller_priv_url		,
+  $controller_priv_url,
   $controller_pub_host,
   $controller_pub_url,
   $nova_default_floating_pool,
