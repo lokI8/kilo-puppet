@@ -511,4 +511,9 @@ class quickstack::neutron::controller (
     opt_misc => ['backspace=2','tabstop=4','shiftwidth=4','expandtab','nocp','relativenumber','number','ruler','hlsearch','showcmd','showmatch','ignorecase','smartcase','incsearch','autowrite','hidden']
   }
 
+  # Add dnsmasq-neutron.conf for MTU specification
+  class {'moc_openstack::dnsmasq_neutron':
+    require => Class['::neutron'],
+    notify  => Class['::neutron::agents::dhcp'],
+  }
 }
