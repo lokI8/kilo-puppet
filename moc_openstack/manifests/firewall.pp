@@ -25,7 +25,7 @@ class moc_openstack::firewall (
       chain       => 'INPUT',
       destination => $source,
       proto       => 'tcp',
-      port        => [3306, 5672],
+      port        => [3306, 4567, 5672],
       action      => 'drop',
     }
     firewall { '099 accept related established rules':
