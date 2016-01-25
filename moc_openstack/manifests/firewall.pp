@@ -24,7 +24,7 @@ class moc_openstack::firewall (
     firewall { '000 block mysql, amqp access from outside world':
       chain       => 'INPUT',
       destination => $source,
-      proto       => 'tcp',
+      proto       => 'all',
       port        => [3306, 4567, 5672],
       action      => 'drop',
     }
