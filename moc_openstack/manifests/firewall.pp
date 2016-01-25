@@ -17,10 +17,16 @@ class moc_openstack::firewall (
     # controllers and compute hosts, when we do we should iterate here
     firewall { '000 allow openstacknet':
       chain    => 'INPUT',
-      iniface  => $interface,
       proto    => 'all',
       source   => $source,
       action   => 'accept',      
+    }
+    firewall { '000 block mysql, amqp access from outside world':
+      chain       => 'INPUT',
+      destination => $source,
+      proto       => 'tcp',
+      port        => [3306, 5672],
+      action      => 'drop',
     }
     firewall { '099 accept related established rules':
       proto   => 'all',
