@@ -102,7 +102,7 @@ class swift::keystone::auth(
   $internal_protocol      = 'http',
   $internal_address       = undef,
   $configure_endpoint     = true,
-  $configure_s3_endpoint  = true,
+  $configure_s3_endpoint  = false, 
   $endpoint_prefix        = 'AUTH',
 ) {
   $real_service_name    = pick($service_name, $auth_name)
