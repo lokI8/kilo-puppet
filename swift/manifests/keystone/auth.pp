@@ -90,7 +90,7 @@ class swift::keystone::auth(
   $port                   = '8080',
   $tenant                 = 'services',
   $email                  = 'swift@localhost',
-  $region                 = 'RegionOne',
+  $region                 = $openstack::keystone::region, 
   $operator_roles         = ['admin', 'SwiftOperator'],
   $service_name           = undef,
   $service_name_s3        = undef,
@@ -138,9 +138,9 @@ class swift::keystone::auth(
     password            => $password,
     email               => $email,
     tenant              => $tenant,
-    public_url          => "${public_protocol}://${public_address}:${real_public_port}/v1/${endpoint_prefix}_%(tenant_id)s",
-    admin_url           => "${admin_protocol}://${real_admin_address}:${port}/",
-    internal_url        => "${internal_protocol}://${real_internal_address}:${port}/v1/${endpoint_prefix}_%(tenant_id)s",
+    public_url          => "${public_protocol}://${public_address}",
+    admin_url           => "${admin_protocol}://${real_admin_address}",
+    internal_url        => "${internal_protocol}://${real_internal_address}",
   }
 
   keystone::resource::service_identity { 'swift_s3':
