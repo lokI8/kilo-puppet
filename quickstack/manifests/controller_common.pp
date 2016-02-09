@@ -163,6 +163,7 @@ class quickstack::controller_common (
   $neutron_key                   = $quickstack::params::neutron_key,
   $neutron_cert                  = $quickstack::params::neutron_cert,
   $source                        = $quickstack::params::source,
+  $controller_private            = $quickstack::params::controller_private,
   $ntp_public_servers            = $quickstack::params::ntp_public_servers,
 ) inherits quickstack::params {
 
@@ -784,6 +785,7 @@ class quickstack::controller_common (
   class { 'moc_openstack::firewall':
     interface => $ceph_iface,
     source    => $source,
+    controller_private => $controller_private,
   }
 
   class {'quickstack::ntp':
