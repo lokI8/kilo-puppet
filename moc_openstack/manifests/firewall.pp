@@ -9,6 +9,7 @@
 class moc_openstack::firewall (
   $interface = 'enp130s0f0', # note we dont want to get in the way of Neutron iptables
   $source = undef,
+  $controller_private = undef,
 )
 {
   if $::environment == 'production' {
@@ -17,10 +18,23 @@ class moc_openstack::firewall (
     # controllers and compute hosts, when we do we should iterate here
     firewall { '000 allow openstacknet':
       chain    => 'INPUT',
-      iniface  => $interface,
       proto    => 'all',
       source   => $source,
       action   => 'accept',      
+    }
+    firewall { '000 block access to vnc except controller':
+      chain  => 'INPUT',
+      proto  => 'tcp',
+      source => "!$controller_private",
+      port   => [5900-6200],
+      action => 'drop',
+    }
+    firewall { '000 block mysql, amqp access from outside world':
+      chain       => 'INPUT',
+      destination => $source,
+      proto       => 'tcp',
+      port        => [3306, 4567, 5672],
+      action      => 'drop',
     }
     firewall { '099 accept related established rules':
       proto   => 'all',

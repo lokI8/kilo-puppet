@@ -125,7 +125,7 @@ class quickstack::neutron::controller (
   $nova_default_floating_pool    = $quickstack::params::nova_default_floating_pool,
   $ovs_vlan_ranges               = $quickstack::params::ovs_vlan_ranges,
   #added for extra ovs plugin init - moc specific
-  $ovs_tunnel_iface              = 'enp130s0f0',
+  $ovs_tunnel_iface              = $quickstack::params::ovs_tunnel_iface,
   $ovs_tunnel_network            = '',
   $ovs_bridge_mappings           = $quickstack::params::ovs_bridge_mappings,
   $ovs_bridge_uplinks            = $quickstack::params::ovs_bridge_uplinks,
@@ -511,4 +511,9 @@ class quickstack::neutron::controller (
     opt_misc => ['backspace=2','tabstop=4','shiftwidth=4','expandtab','nocp','relativenumber','number','ruler','hlsearch','showcmd','showmatch','ignorecase','smartcase','incsearch','autowrite','hidden']
   }
 
+  # Add dnsmasq-neutron.conf for MTU specification
+  class {'moc_openstack::dnsmasq_neutron':
+    require => Class['::neutron'],
+    notify  => Class['::neutron::agents::dhcp'],
+  }
 }
