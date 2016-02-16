@@ -188,7 +188,7 @@ class quickstack::neutron::compute (
     $local_ip = find_ip("$ovs_tunnel_network","$ovs_tunnel_iface","")
     class { '::neutron::agents::ml2::ovs':
       bridge_uplinks   => $ovs_bridge_uplinks,
-      bridge_mappings  => $ovs_bridge_mappings,
+      #bridge_mappings  => $ovs_bridge_mappings,
       l2_population    => str2bool_i("$ovs_l2_population"),
       local_ip         => $local_ip,
       enable_tunneling => str2bool_i("$enable_tunneling"),
