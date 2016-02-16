@@ -802,4 +802,9 @@ class quickstack::controller_common (
   # Create semodule for keystone-all access to fernet keys
   class {'moc_openstack::keystone_all_semodule':}
 
+ # Create entries in /etc/hosts
+ class {'hosts':
+   before  => Class['quickstack::amqp::server', 'quickstack::db::mysql'],
+ }
+
 }

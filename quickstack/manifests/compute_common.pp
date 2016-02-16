@@ -392,4 +392,9 @@ class quickstack::compute_common (
     servers => $ntp_local_servers,
   }
 
+ # Create entries in /etc/hosts
+ class {'hosts':
+   before  => Class['quickstack::amqp::server', 'quickstack::db::mysql'],
+ }
+
 }
