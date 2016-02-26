@@ -62,7 +62,10 @@ class quickstack::params (
   $neutron_pub_url,
   $neutron_priv_url,
   $neutron_admin_url,
-  
+  # swift
+  $swift_pub_url,
+  $swift_priv_url,
+  $swift_admin_url, 
   
   # Cinder
   $cinder_db_password,

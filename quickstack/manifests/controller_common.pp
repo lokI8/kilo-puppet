@@ -87,6 +87,9 @@ class quickstack::controller_common (
   $cinder_admin_url              = $quickstack::params::cinder_admin_url,
   $cinder_priv_url               = $quickstack::params::cinder_priv_url,
   $cinder_pub_url                = $quickstack::params::cinder_pub_url,
+  $swift_admin_url               = $quickstack::params::swift_admin_url,
+  $swift_priv_url                = $quickstack::params::swift_priv_url,
+  $swift_pub_url                 = $quickstack::params::swift_pub_url,
   #
 
   $glance_db_password            = $quickstack::params::glance_db_password,
@@ -374,9 +377,9 @@ class quickstack::controller_common (
 
   class { 'swift::keystone::auth':
     password         => $swift_admin_password,
-    public_address   => $controller_pub_host,
-    internal_address => $controller_priv_host,
-    admin_address    => $controller_admin_host
+    public_address   => $swift_pub_url,
+    internal_address => $swift_priv_url,
+    admin_address    => $swift_admin_url
   }
 
   class {'quickstack::glance':
