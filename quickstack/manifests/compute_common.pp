@@ -89,8 +89,9 @@ class quickstack::compute_common (
   $sensu_rabbitmq_user          = $quickstack::params::sensu_rabbitmq_user,
   $sensu_rabbitmq_password      = $quickstack::params::sensu_rabbitmq_password,
   $sensu_client_subscriptions_compute = 'moc-sensu',
-  $source                       = $quickstack::params::source,
-  $controller_private           = $quickstack::params::controller_private,
+  $public_net                   = $quickstack::params::public_net,
+  $private_net                  = $quickstack::params::private_net,
+  $controller_private_ip        = $quickstack::params::controller_private_ip,
   $ntp_local_servers            = $quickstack::params::ntp_local_servers,
 ) inherits quickstack::params {
 
@@ -328,10 +329,11 @@ class quickstack::compute_common (
 
   include quickstack::tuned::virtual_host
 
-  firewall { '001 nova compute incoming':
+  firewall { '000 block vnc access for all except controller':
     proto  => 'tcp',
     dport  => '5900-5999',
-    action => 'accept',
+    source => "!$controller_private_ip",
+    action => 'drop',
   }
 
 #Customization for intalling ceph and conf files  
@@ -345,9 +347,9 @@ class quickstack::compute_common (
   }
 
   class { 'moc_openstack::firewall':
-    interface => $ceph_iface,
-    source    => $source,
-    controller_private => $controller_private,
+    interface   => $ceph_iface,
+    public_net  => $public_net,
+    private_net => $private_net,
   }
 
 # Ensure ruby has lastest version
