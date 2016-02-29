@@ -91,7 +91,6 @@ class quickstack::compute_common (
   $sensu_client_subscriptions_compute = 'moc-sensu',
   $public_net                   = $quickstack::params::public_net,
   $private_net                  = $quickstack::params::private_net,
-  $controller_private_ip        = $quickstack::params::controller_private_ip,
   $ntp_local_servers            = $quickstack::params::ntp_local_servers,
 ) inherits quickstack::params {
 
@@ -329,12 +328,12 @@ class quickstack::compute_common (
 
   include quickstack::tuned::virtual_host
 
-  firewall { '000 block vnc access for all except controller':
-    proto  => 'tcp',
-    dport  => '5900-5999',
-    source => "!$controller_private_ip",
-    action => 'drop',
-  }
+#  firewall { '000 block vnc access for all except controller':
+#    proto  => 'tcp',
+#    dport  => '5900-5999',
+#    source => "!$controller_private_ip",
+#    action => 'drop',
+#  }
 
 #Customization for intalling ceph and conf files  
   class { 'moc_openstack::install_ceph':

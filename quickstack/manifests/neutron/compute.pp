@@ -270,11 +270,11 @@ class quickstack::neutron::compute (
     horizon_ssl                  => $horizon_ssl,
   }
 
-  class {'quickstack::neutron::firewall::gre':}
+#  class {'quickstack::neutron::firewall::gre':}
 
-  class {'quickstack::neutron::firewall::vxlan':
-    port => $ovs_vxlan_udp_port,
-  }
+#  class {'quickstack::neutron::firewall::vxlan':
+#    port => $ovs_vxlan_udp_port,
+#  }
 
   class { '::timezone':
     timezone => 'America/New_York',

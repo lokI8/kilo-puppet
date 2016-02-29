@@ -678,22 +678,22 @@ class quickstack::controller_common (
 
   firewall { '001 controller incoming':
     proto    => 'tcp',
-    dport    => ['80', '443', '3260', '3306', '5000', '35357', '5672', '8773', '8774', '8775', '8776', '8777', '9292', '6080'],
+    dport    => ['80', '443', '5000', '35357', '8080', '8773', '8774', '8775', '8776', '8777', '9292', '9696', '6080'],
     action   => 'accept',
   }
 
-  firewall { '001 controller incoming pt2':
-    proto    => 'tcp',
-    dport    => ['8000', '8003', '8004','6789'],
-    action   => 'accept',
-  }
+#  firewall { '001 controller incoming pt2':
+#    proto    => 'tcp',
+#    dport    => ['8000', '8003', '8004','6789'],
+#    action   => 'accept',
+#  }
 
   if $ssl {
     if str2bool_i("$horizon_ssl") {
-      firewall { '002 horizon incoming':
-        proto  => 'tcp',
-        dport  => ['443',],
-        action => 'accept',
+#      firewall { '002 horizon incoming':
+#        proto  => 'tcp',
+#        dport  => ['443',],
+#        action => 'accept',
       }
     }
 
