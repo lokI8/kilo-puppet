@@ -100,6 +100,9 @@ class quickstack::compute_common (
     $auth_protocol = 'http'
   }
 
+  # Create entries in /etc/hosts
+  class {'hosts':}
+
   class {'quickstack::openstack_common': }
 
   # Temporary fix for glanceclient bug: 1244291
@@ -392,10 +395,5 @@ class quickstack::compute_common (
   class {'quickstack::ntp':
     servers => $ntp_local_servers,
   }
-
- # Create entries in /etc/hosts
- class {'hosts':
-   before  => Class['quickstack::amqp::server', 'quickstack::db::mysql'],
- }
 
 }
